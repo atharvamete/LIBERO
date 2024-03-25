@@ -3,22 +3,26 @@
 defaults:
   - _self_
   - data: default
-  - policy: bc_transformer_policy
+  - policy: skill_vae
   - train: default
   - eval: default
-  - lifelong: base
+  - lifelong: multitask
   - test: null
 
+loss_type: "l1"
+
 seed: 10000
-use_wandb: false
-wandb_project: "lifelong learning"
+use_wandb: true
+wandb_project: "diff-skill-libero"
+# experiment_name: "pretrain"
+
 folder: null # use default path
 bddl_folder: null # use default path
 init_states_folder: null # use default path
 load_previous_model: false
 device: "cuda"
-task_embedding_format: "bert"
+task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
-pretrain: false
+pretrain: true
 pretrain_model_path: ""
-benchmark_name: "LIBERO_10"
+benchmark_name: "LIBERO_90"

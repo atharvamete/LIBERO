@@ -1,5 +1,5 @@
 load_path: "" # only used when separately evaluating a pretrained model
-eval: true
+eval: false
 batch_size: 64
 num_workers: 4
 n_eval: 20

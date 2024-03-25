@@ -1,0 +1,351 @@
+{ 'bddl_folder': None,
+  'benchmark_name': 'LIBERO_10',
+  'data': { 'action_scale': 1.0,
+            'affine_translate': 4,
+            'data_modality': ['image', 'proprio'],
+            'frame_stack': 1,
+            'img_h': 128,
+            'img_w': 128,
+            'max_word_len': 25,
+            'num_kp': 64,
+            'obs': { 'modality': { 'depth': [],
+                                   'low_dim': ['gripper_states'],
+                                   'rgb': [ 'agentview_rgb',
+                                            'eye_in_hand_rgb']}},
+            'obs_key_mapping': { 'agentview_rgb': 'agentview_image',
+                                 'eye_in_hand_rgb': 'robot0_eye_in_hand_image',
+                                 'gripper_states': 'robot0_gripper_qpos'},
+            'seq_len': 32,
+            'shuffle_task': False,
+            'state_dim': None,
+            'task_group_size': 1,
+            'task_order_index': 0,
+            'train_dataset_ratio': 0.8,
+            'use_ee': False,
+            'use_eye_in_hand': True,
+            'use_gripper': True,
+            'use_joint': False},
+  'device': 'cuda',
+  'eval': { 'batch_size': 64,
+            'eval': False,
+            'eval_every': 5,
+            'load_path': '',
+            'max_steps': 600,
+            'n_eval': 20,
+            'num_procs': 20,
+            'num_workers': 4,
+            'save_sim_states': False,
+            'use_mp': True},
+  'folder': None,
+  'init_states_folder': None,
+  'lifelong': {'algo': 'Multitask', 'eval_in_train': False},
+  'load_previous_model': False,
+  'loss_type': 'l1',
+  'policy': { 'action_dim': 7,
+              'attn_pdrop': 0.1,
+              'cat_obs_dim': 576,
+              'codebook_dim': 256,
+              'codebook_size': 512,
+              'color_aug': { 'network': 'BatchWiseImgColorJitterAug',
+                             'network_kwargs': { 'brightness': 0.3,
+                                                 'contrast': 0.3,
+                                                 'epsilon': 0.1,
+                                                 'hue': 0.3,
+                                                 'input_shape': None,
+                                                 'saturation': 0.3}},
+              'cross_z': False,
+              'decoder_dim': 256,
+              'decoder_heads': 4,
+              'decoder_layers': 4,
+              'encoder_dim': 256,
+              'encoder_heads': 4,
+              'encoder_layers': 4,
+              'extra_embedding_size': 64,
+              'extra_hidden_size': 64,
+              'extra_num_layers': 0,
+              'fsq_level': [8, 5, 5, 5],
+              'image_encoder': { 'network': 'ResnetEncoder',
+                                 'network_kwargs': { 'freeze': False,
+                                                     'language_fusion': 'none',
+                                                     'no_stride': False,
+                                                     'pretrained': False,
+                                                     'remove_layer_num': 4}},
+              'kernel_sizes': [5, 3, 3],
+              'language_encoder': { 'network': 'MLPEncoder',
+                                    'network_kwargs': { 'hidden_size': 128,
+                                                        'input_size': 768,
+                                                        'num_layers': 1,
+                                                        'output_size': 128}},
+              'obs_emb_dim': 256,
+              'policy_type': 'SkillVAE_Model',
+              'resid_pdrop': 0.1,
+              'skill_block_size': 32,
+              'strides': [1, 1, 1],
+              'translation_aug': { 'network': 'TranslationAug',
+                                   'network_kwargs': { 'input_shape': None,
+                                                       'translation': 8}},
+              'use_causal_decoder': False,
+              'use_causal_encoder': False,
+              'vq_type': 'fsq'},
+  'pretrain': True,
+  'pretrain_model_path': '',
+  'seed': 10000,
+  'task_embedding_format': 'clip',
+  'task_embedding_one_hot_offset': 1,
+  'train': { 'batch_size': 32,
+             'debug': True,
+             'grad_clip': 100.0,
+             'loss_scale': 1.0,
+             'n_epochs': 50,
+             'num_workers': 0,
+             'optimizer': { 'kwargs': { 'betas': [0.9, 0.999],
+                                        'lr': 0.0001,
+                                        'weight_decay': 0.0001},
+                            'name': 'torch.optim.AdamW'},
+             'resume': False,
+             'resume_path': '',
+             'scheduler': { 'kwargs': {'eta_min': 1e-05, 'last_epoch': -1},
+                            'name': 'torch.optim.lr_scheduler.CosineAnnealingLR'},
+             'use_augmentation': True},
+  'use_wandb': False,
+  'wandb_project': 'lifelong learning'}
+'Available algorithms:'
+{ 'agem': <class 'libero.lifelong.algos.agem.AGEM'>,
+  'er': <class 'libero.lifelong.algos.er.ER'>,
+  'ewc': <class 'libero.lifelong.algos.ewc.EWC'>,
+  'multitask': <class 'libero.lifelong.algos.multitask.Multitask'>,
+  'packnet': <class 'libero.lifelong.algos.packnet.PackNet'>,
+  'sequential': <class 'libero.lifelong.algos.base.Sequential'>,
+  'singletask': <class 'libero.lifelong.algos.single_task.SingleTask'>}
+'Available policies:'
+{ 'bcrnnpolicy': <class 'libero.lifelong.models.bc_rnn_policy.BCRNNPolicy'>,
+  'bctransformerpolicy': <class 'libero.lifelong.models.bc_transformer_policy.BCTransformerPolicy'>,
+  'bcviltpolicy': <class 'libero.lifelong.models.bc_vilt_policy.BCViLTPolicy'>,
+  'skillvae_model': <class 'libero.lifelong.models.skill_vae.SkillVAE_Model'>}
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+============= Initialized Observation Utils with Obs Spec =============
+
+using obs modality: rgb with keys: ['eye_in_hand_rgb', 'agentview_rgb']
+using obs modality: depth with keys: []
+using obs modality: low_dim with keys: ['gripper_states']
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 64%|██████▍   | 32/50 [00:00<00:00, 314.48it/s]100%|██████████| 50/50 [00:00<00:00, 350.61it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 80%|████████  | 40/50 [00:00<00:00, 389.77it/s]100%|██████████| 50/50 [00:00<00:00, 370.07it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE2_put_both_the_cream_cheese_box_and_the_butter_in_the_basket_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 80%|████████  | 40/50 [00:00<00:00, 392.58it/s]100%|██████████| 50/50 [00:00<00:00, 404.43it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE3_turn_on_the_stove_and_put_the_moka_pot_on_it_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 82%|████████▏ | 41/50 [00:00<00:00, 399.03it/s]100%|██████████| 50/50 [00:00<00:00, 401.78it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 86%|████████▌ | 43/50 [00:00<00:00, 427.91it/s]100%|██████████| 50/50 [00:00<00:00, 430.45it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE5_put_the_white_mug_on_the_left_plate_and_put_the_yellow_and_white_mug_on_the_right_plate_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 88%|████████▊ | 44/50 [00:00<00:00, 430.91it/s]100%|██████████| 50/50 [00:00<00:00, 432.27it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/STUDY_SCENE1_pick_up_the_book_and_place_it_in_the_back_compartment_of_the_caddy_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 86%|████████▌ | 43/50 [00:00<00:00, 427.51it/s]100%|██████████| 50/50 [00:00<00:00, 434.58it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE6_put_the_white_mug_on_the_plate_and_put_the_chocolate_pudding_to_the_right_of_the_plate_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 80%|████████  | 40/50 [00:00<00:00, 387.80it/s]100%|██████████| 50/50 [00:00<00:00, 409.61it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE1_put_both_the_alphabet_soup_and_the_cream_cheese_box_in_the_basket_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 70%|███████   | 35/50 [00:00<00:00, 348.80it/s]100%|██████████| 50/50 [00:00<00:00, 363.86it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE8_put_both_moka_pots_on_the_stove_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 82%|████████▏ | 41/50 [00:00<00:00, 404.75it/s]100%|██████████| 50/50 [00:00<00:00, 409.71it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE6_put_the_yellow_and_white_mug_in_the_microwave_and_close_it_demo.hdf5
+
+=================== Lifelong Benchmark Information  ===================
+ Name: libero_10
+ # Tasks: 10
+    - Task 1:
+        put both the alphabet soup and the tomato sauce in the basket
+    - Task 2:
+        put both the cream cheese box and the butter in the basket
+    - Task 3:
+        turn on the stove and put the moka pot on it
+    - Task 4:
+        put the black bowl in the bottom drawer of the cabinet and close it
+    - Task 5:
+        put the white mug on the left plate and put the yellow and white mug on the right plate
+    - Task 6:
+        pick up the book and place it in the back compartment of the caddy
+    - Task 7:
+        put the white mug on the plate and put the chocolate pudding to the right of the plate
+    - Task 8:
+        put both the alphabet soup and the cream cheese box in the basket
+    - Task 9:
+        put both moka pots on the stove
+    - Task 10:
+        put the yellow and white mug in the microwave and close it
+ # demonstrations: (50) (50) (50) (50) (50) (50) (50) (50) (50) (50)
+ # sequences: (14700) (13021) (13298) (12434) (12909) (9470) (12756) (13476) (20794) (15232)
+=======================================================================
+
+LIBERO_10_Multitask_SkillVAE_Model_seed10000_run_018
+[info] start lifelong learning with algo Multitask
+torch.Size([1, 1, 576]) encoded shape
+[info] policy has 1.8 GFLOPs and 9.4 MParams
+
+4316
+torch.Size([32, 1, 576]) encoded shape
+0.42288345098495483 loss
+torch.Size([32, 1, 576]) encoded shape
+0.45733916759490967 loss
+torch.Size([32, 1, 576]) encoded shape
+0.4961305856704712 loss
+torch.Size([32, 1, 576]) encoded shape
+0.32528918981552124 loss
+torch.Size([32, 1, 576]) encoded shape
+0.28134849667549133 loss
+torch.Size([32, 1, 576]) encoded shape
+0.24729055166244507 loss
+torch.Size([32, 1, 576]) encoded shape
+0.22144992649555206 loss
+torch.Size([32, 1, 576]) encoded shape
+0.21760551631450653 loss
+torch.Size([32, 1, 576]) encoded shape
+0.21636338531970978 loss
+torch.Size([32, 1, 576]) encoded shape
+0.2009172886610031 loss
+torch.Size([32, 1, 576]) encoded shape
+0.2137034684419632 loss
+torch.Size([32, 1, 576]) encoded shape
+0.2052309215068817 loss
+torch.Size([32, 1, 576]) encoded shape
+0.18374165892601013 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1890476793050766 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16683799028396606 loss
+torch.Size([32, 1, 576]) encoded shape
+0.19118760526180267 loss
+torch.Size([32, 1, 576]) encoded shape
+0.18008846044540405 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1657239943742752 loss
+torch.Size([32, 1, 576]) encoded shape
+0.17796702682971954 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1775183379650116 loss
+torch.Size([32, 1, 576]) encoded shape
+0.17006725072860718 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16868267953395844 loss
+torch.Size([32, 1, 576]) encoded shape
+0.17068861424922943 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15608619153499603 loss
+torch.Size([32, 1, 576]) encoded shape
+0.160685732960701 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1619129627943039 loss
+torch.Size([32, 1, 576]) encoded shape
+0.17252890765666962 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16511881351470947 loss
+torch.Size([32, 1, 576]) encoded shape
+0.17323154211044312 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1716529279947281 loss
+torch.Size([32, 1, 576]) encoded shape
+0.17138485610485077 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16162601113319397 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16709332168102264 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16182298958301544 loss
+torch.Size([32, 1, 576]) encoded shape
+0.17478646337985992 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15997356176376343 loss
+torch.Size([32, 1, 576]) encoded shape
+0.14524435997009277 loss
+torch.Size([32, 1, 576]) encoded shape
+0.14180991053581238 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16366250813007355 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16045618057250977 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15628521144390106 loss
+torch.Size([32, 1, 576]) encoded shape
+0.14726762473583221 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15660086274147034 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15766224265098572 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16007062792778015 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1542471945285797 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15962114930152893 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16097137331962585 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15716750919818878 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16697652637958527 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15745338797569275 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16270749270915985 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1690356433391571 loss
+torch.Size([32, 1, 576]) encoded shape
+0.14383020997047424 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1405460685491562 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16327357292175293 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1480877846479416 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15227657556533813 loss
+torch.Size([32, 1, 576]) encoded shape
+0.16123251616954803 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1506744921207428 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15603099763393402 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1636940836906433 loss
+torch.Size([32, 1, 576]) encoded shape
+0.13539862632751465 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1430685967206955 loss
+torch.Size([32, 1, 576]) encoded shape
+0.14043980836868286 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15058906376361847 loss
+torch.Size([32, 1, 576]) encoded shape
+0.14899598062038422 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1471070945262909 loss
+torch.Size([32, 1, 576]) encoded shape
+0.14030073583126068 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1418260782957077 loss
+torch.Size([32, 1, 576]) encoded shape
+0.1361342817544937 loss
+torch.Size([32, 1, 576]) encoded shape
+0.14198540151119232 loss
+torch.Size([32, 1, 576]) encoded shape
+0.15139304101467133 loss
+torch.Size([32, 1, 576]) encoded shape
+0.13930873572826385 loss
+torch.Size([32, 1, 576]) encoded shape
+0.13921278715133667 loss
+torch.Size([32, 1, 576]) encoded shape
+0.13093918561935425 loss
+torch.Size([32, 1, 576]) encoded shape
+0.13396774232387543 loss
+torch.Size([32, 1, 576]) encoded shape
+0.14368590712547302 loss

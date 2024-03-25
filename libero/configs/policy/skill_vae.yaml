@@ -1,0 +1,36 @@
+policy_type: SkillVAE_Model
+extra_num_layers: 0
+extra_hidden_size: 64
+extra_embedding_size: 64
+
+cross_z: false
+action_dim: 7
+obs_emb_dim: 256
+cat_obs_dim: 576
+encoder_dim: 256
+decoder_dim: 256
+skill_block_size: 32
+
+encoder_heads: 4
+encoder_layers: 4
+decoder_heads: 4
+decoder_layers: 4
+
+resid_pdrop: 0.1
+attn_pdrop: 0.1
+use_causal_encoder: false
+use_causal_decoder: false
+
+vq_type: "fsq"
+fsq_level: [8,5,5,5]
+codebook_dim: 256
+codebook_size: 512
+
+kernel_sizes: [5,3,3]
+strides: [1,1,1]
+
+defaults:
+    - data_augmentation@color_aug: batch_wise_img_color_jitter_group_aug.yaml
+    - data_augmentation@translation_aug: translation_aug.yaml
+    - image_encoder: resnet_encoder.yaml
+    - language_encoder: mlp_encoder.yaml

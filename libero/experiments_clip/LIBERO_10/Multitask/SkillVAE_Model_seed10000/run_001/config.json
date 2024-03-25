@@ -1,0 +1,214 @@
+{
+    "loss_type": "l1",
+    "seed": 10000,
+    "use_wandb": true,
+    "wandb_project": "diff-skill-libero",
+    "folder": "/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets",
+    "bddl_folder": "/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/./bddl_files",
+    "init_states_folder": "/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/./init_files",
+    "load_previous_model": false,
+    "device": "cuda",
+    "task_embedding_format": "clip",
+    "task_embedding_one_hot_offset": 1,
+    "pretrain": true,
+    "pretrain_model_path": "",
+    "benchmark_name": "LIBERO_10",
+    "data": {
+        "data_modality": [
+            "image",
+            "proprio"
+        ],
+        "seq_len": 32,
+        "frame_stack": 1,
+        "use_eye_in_hand": true,
+        "use_gripper": true,
+        "use_joint": false,
+        "use_ee": false,
+        "max_word_len": 25,
+        "state_dim": null,
+        "num_kp": 64,
+        "img_h": 128,
+        "img_w": 128,
+        "task_group_size": 1,
+        "task_order_index": 0,
+        "shuffle_task": false,
+        "obs": {
+            "modality": {
+                "rgb": [
+                    "agentview_rgb",
+                    "eye_in_hand_rgb"
+                ],
+                "depth": [],
+                "low_dim": [
+                    "gripper_states"
+                ]
+            }
+        },
+        "obs_key_mapping": {
+            "agentview_rgb": "agentview_image",
+            "eye_in_hand_rgb": "robot0_eye_in_hand_image",
+            "gripper_states": "robot0_gripper_qpos"
+        },
+        "affine_translate": 4,
+        "action_scale": 1.0,
+        "train_dataset_ratio": 0.8
+    },
+    "policy": {
+        "color_aug": {
+            "network": "BatchWiseImgColorJitterAug",
+            "network_kwargs": {
+                "input_shape": null,
+                "brightness": 0.3,
+                "contrast": 0.3,
+                "saturation": 0.3,
+                "hue": 0.3,
+                "epsilon": 0.1
+            }
+        },
+        "translation_aug": {
+            "network": "TranslationAug",
+            "network_kwargs": {
+                "input_shape": [
+                    3,
+                    128,
+                    128
+                ],
+                "translation": 8
+            }
+        },
+        "image_encoder": {
+            "network": "ResnetEncoder",
+            "network_kwargs": {
+                "pretrained": false,
+                "freeze": false,
+                "remove_layer_num": 4,
+                "no_stride": false,
+                "language_fusion": "none",
+                "input_shape": [
+                    3,
+                    128,
+                    128
+                ],
+                "output_size": 256
+            }
+        },
+        "language_encoder": {
+            "network": "MLPEncoder",
+            "network_kwargs": {
+                "input_size": 512,
+                "hidden_size": 128,
+                "output_size": 128,
+                "num_layers": 1
+            }
+        },
+        "policy_type": "SkillVAE_Model",
+        "extra_num_layers": 0,
+        "extra_hidden_size": 64,
+        "extra_embedding_size": 64,
+        "cross_z": false,
+        "action_dim": 7,
+        "obs_emb_dim": 256,
+        "cat_obs_dim": 576,
+        "encoder_dim": 256,
+        "decoder_dim": 256,
+        "skill_block_size": 32,
+        "encoder_heads": 4,
+        "encoder_layers": 4,
+        "decoder_heads": 4,
+        "decoder_layers": 4,
+        "resid_pdrop": 0.1,
+        "attn_pdrop": 0.1,
+        "use_causal_encoder": false,
+        "use_causal_decoder": false,
+        "vq_type": "fsq",
+        "fsq_level": [
+            8,
+            5,
+            5,
+            5
+        ],
+        "codebook_dim": 256,
+        "codebook_size": 512,
+        "kernel_sizes": [
+            5,
+            3,
+            3
+        ],
+        "strides": [
+            1,
+            1,
+            1
+        ]
+    },
+    "train": {
+        "optimizer": {
+            "name": "torch.optim.AdamW",
+            "kwargs": {
+                "lr": 0.0001,
+                "betas": [
+                    0.9,
+                    0.999
+                ],
+                "weight_decay": 0.0001
+            }
+        },
+        "scheduler": {
+            "name": "torch.optim.lr_scheduler.CosineAnnealingLR",
+            "kwargs": {
+                "eta_min": 1e-05,
+                "last_epoch": -1
+            }
+        },
+        "n_epochs": 100,
+        "batch_size": 512,
+        "num_workers": 0,
+        "grad_clip": 100.0,
+        "loss_scale": 1.0,
+        "resume": false,
+        "resume_path": "",
+        "debug": true,
+        "use_augmentation": true
+    },
+    "eval": {
+        "load_path": "",
+        "eval": false,
+        "batch_size": 64,
+        "num_workers": 4,
+        "n_eval": 20,
+        "eval_every": 5,
+        "max_steps": 600,
+        "use_mp": true,
+        "num_procs": 20,
+        "save_sim_states": false
+    },
+    "lifelong": {
+        "algo": "Multitask",
+        "eval_in_train": false
+    },
+    "experiment_dir": "./experiments_clip/LIBERO_10/Multitask/SkillVAE_Model_seed10000/run_001",
+    "experiment_name": "LIBERO_10_Multitask_SkillVAE_Model_seed10000_run_001",
+    "shape_meta": {
+        "ac_dim": 7,
+        "all_shapes": {
+            "agentview_rgb": [
+                3,
+                128,
+                128
+            ],
+            "eye_in_hand_rgb": [
+                3,
+                128,
+                128
+            ],
+            "gripper_states": [
+                2
+            ]
+        },
+        "all_obs_keys": [
+            "agentview_rgb",
+            "eye_in_hand_rgb",
+            "gripper_states"
+        ],
+        "use_images": true
+    }
+}

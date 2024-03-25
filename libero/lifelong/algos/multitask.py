@@ -10,7 +10,7 @@ from libero.lifelong.algos.base import Sequential
 from libero.lifelong.metric import *
 from libero.lifelong.models import *
 from libero.lifelong.utils import *
-
+import wandb
 
 class Multitask(Sequential):
     """
@@ -19,6 +19,11 @@ class Multitask(Sequential):
 
     def __init__(self, n_tasks, cfg, **policy_kwargs):
         super().__init__(n_tasks=n_tasks, cfg=cfg, **policy_kwargs)
+        self.step = 0
+
+    def log_wandb(self,loss, info):
+        wandb.log({"loss": loss, "pp": info,}, step=self.step)
+        self.step += 1
 
     def learn_all_tasks(self, datasets, benchmark, result_summary):
         self.start_task(-1)
@@ -35,7 +40,7 @@ class Multitask(Sequential):
             batch_size=self.cfg.train.batch_size,
             num_workers=self.cfg.train.num_workers,
             sampler=RandomSampler(concat_dataset),
-            persistent_workers=True,
+            persistent_workers=False,
         )
 
         prev_success_rate = -1.0
@@ -52,17 +57,19 @@ class Multitask(Sequential):
         for epoch in range(0, self.cfg.train.n_epochs + 1):
 
             t0 = time.time()
+            print(len(train_dataloader))
             if epoch > 0 or (self.cfg.pretrain):  # update
                 self.policy.train()
                 training_loss = 0.0
                 for (idx, data) in enumerate(train_dataloader):
-                    loss = self.observe(data)
+                    loss, info = self.observe(data)
                     training_loss += loss
+                    self.log_wandb(loss, info)
                 training_loss /= len(train_dataloader)
             else:  # just evaluate the zero-shot performance on 0-th epoch
                 training_loss = 0.0
                 for (idx, data) in enumerate(train_dataloader):
-                    loss = self.eval_observe(data)
+                    loss, info = self.eval_observe(data)
                     training_loss += loss
                 training_loss /= len(train_dataloader)
             t1 = time.time()

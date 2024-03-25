@@ -1,0 +1,191 @@
+{ 'bddl_folder': None,
+  'benchmark_name': 'LIBERO_10',
+  'data': { 'action_scale': 1.0,
+            'affine_translate': 4,
+            'data_modality': ['image', 'proprio'],
+            'frame_stack': 1,
+            'img_h': 128,
+            'img_w': 128,
+            'max_word_len': 25,
+            'num_kp': 64,
+            'obs': { 'modality': { 'depth': [],
+                                   'low_dim': ['gripper_states'],
+                                   'rgb': [ 'agentview_rgb',
+                                            'eye_in_hand_rgb']}},
+            'obs_key_mapping': { 'agentview_rgb': 'agentview_image',
+                                 'eye_in_hand_rgb': 'robot0_eye_in_hand_image',
+                                 'gripper_states': 'robot0_gripper_qpos',
+                                 'joint_states': 'robot0_joint_pos'},
+            'seq_len': 32,
+            'shuffle_task': False,
+            'state_dim': None,
+            'task_group_size': 1,
+            'task_order_index': 0,
+            'train_dataset_ratio': 0.8,
+            'use_ee': False,
+            'use_eye_in_hand': True,
+            'use_gripper': True,
+            'use_joint': False},
+  'device': 'cuda',
+  'eval': { 'batch_size': 64,
+            'eval': False,
+            'eval_every': 5,
+            'load_path': '',
+            'max_steps': 600,
+            'n_eval': 20,
+            'num_procs': 20,
+            'num_workers': 4,
+            'save_sim_states': False,
+            'use_mp': True},
+  'folder': None,
+  'init_states_folder': None,
+  'lifelong': {'algo': 'Sequential'},
+  'load_previous_model': False,
+  'policy': { 'color_aug': { 'network': 'BatchWiseImgColorJitterAug',
+                             'network_kwargs': { 'brightness': 0.3,
+                                                 'contrast': 0.3,
+                                                 'epsilon': 0.1,
+                                                 'hue': 0.3,
+                                                 'input_shape': None,
+                                                 'saturation': 0.3}},
+              'embed_size': 64,
+              'extra_hidden_size': 128,
+              'extra_num_layers': 0,
+              'image_encoder': { 'network': 'ResnetEncoder',
+                                 'network_kwargs': { 'freeze': False,
+                                                     'language_fusion': 'none',
+                                                     'no_stride': False,
+                                                     'pretrained': False,
+                                                     'remove_layer_num': 4}},
+              'language_encoder': { 'network': 'MLPEncoder',
+                                    'network_kwargs': { 'hidden_size': 128,
+                                                        'input_size': 768,
+                                                        'num_layers': 1,
+                                                        'output_size': 128}},
+              'policy_head': { 'loss_kwargs': {'loss_coef': 1.0},
+                               'network': 'GMMHead',
+                               'network_kwargs': { 'activation': 'softplus',
+                                                   'hidden_size': 1024,
+                                                   'low_eval_noise': False,
+                                                   'min_std': 0.0001,
+                                                   'num_layers': 2,
+                                                   'num_modes': 5}},
+              'policy_type': 'BCTransformerPolicy',
+              'temporal_position_encoding': { 'network': 'SinusoidalPositionEncoding',
+                                              'network_kwargs': { 'factor_ratio': None,
+                                                                  'input_size': None,
+                                                                  'inv_freq_factor': 10}},
+              'transformer_dropout': 0.1,
+              'transformer_head_output_size': 64,
+              'transformer_input_size': None,
+              'transformer_max_seq_len': 10,
+              'transformer_mlp_hidden_size': 256,
+              'transformer_num_heads': 6,
+              'transformer_num_layers': 4,
+              'translation_aug': { 'network': 'TranslationAug',
+                                   'network_kwargs': { 'input_shape': None,
+                                                       'translation': 8}}},
+  'pretrain': False,
+  'pretrain_model_path': '',
+  'seed': 10000,
+  'task_embedding_format': 'bert',
+  'task_embedding_one_hot_offset': 1,
+  'train': { 'batch_size': 32,
+             'debug': False,
+             'grad_clip': 100.0,
+             'loss_scale': 1.0,
+             'n_epochs': 50,
+             'num_workers': 1,
+             'optimizer': { 'kwargs': { 'betas': [0.9, 0.999],
+                                        'lr': 0.0001,
+                                        'weight_decay': 0.0001},
+                            'name': 'torch.optim.AdamW'},
+             'resume': False,
+             'resume_path': '',
+             'scheduler': { 'kwargs': {'eta_min': 1e-05, 'last_epoch': -1},
+                            'name': 'torch.optim.lr_scheduler.CosineAnnealingLR'},
+             'use_augmentation': True},
+  'use_wandb': False,
+  'wandb_project': 'lifelong learning'}
+'Available algorithms:'
+{ 'agem': <class 'libero.lifelong.algos.agem.AGEM'>,
+  'er': <class 'libero.lifelong.algos.er.ER'>,
+  'ewc': <class 'libero.lifelong.algos.ewc.EWC'>,
+  'multitask': <class 'libero.lifelong.algos.multitask.Multitask'>,
+  'packnet': <class 'libero.lifelong.algos.packnet.PackNet'>,
+  'sequential': <class 'libero.lifelong.algos.base.Sequential'>,
+  'singletask': <class 'libero.lifelong.algos.single_task.SingleTask'>}
+'Available policies:'
+{ 'bcrnnpolicy': <class 'libero.lifelong.models.bc_rnn_policy.BCRNNPolicy'>,
+  'bctransformerpolicy': <class 'libero.lifelong.models.bc_transformer_policy.BCTransformerPolicy'>,
+  'bcviltpolicy': <class 'libero.lifelong.models.bc_vilt_policy.BCViLTPolicy'>,
+  'skillvae_model': <class 'libero.lifelong.models.skill_vae.SkillVAE_Model'>}
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+============= Initialized Observation Utils with Obs Spec =============
+
+using obs modality: rgb with keys: ['eye_in_hand_rgb', 'agentview_rgb']
+using obs modality: depth with keys: []
+using obs modality: low_dim with keys: ['gripper_states']
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 66%|██████▌   | 33/50 [00:00<00:00, 325.97it/s]100%|██████████| 50/50 [00:00<00:00, 356.02it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 82%|████████▏ | 41/50 [00:00<00:00, 402.06it/s]100%|██████████| 50/50 [00:00<00:00, 420.22it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE2_put_both_the_cream_cheese_box_and_the_butter_in_the_basket_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 86%|████████▌ | 43/50 [00:00<00:00, 425.86it/s]100%|██████████| 50/50 [00:00<00:00, 433.41it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE3_turn_on_the_stove_and_put_the_moka_pot_on_it_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 76%|███████▌  | 38/50 [00:00<00:00, 379.90it/s]100%|██████████| 50/50 [00:00<00:00, 389.53it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 88%|████████▊ | 44/50 [00:00<00:00, 431.74it/s]100%|██████████| 50/50 [00:00<00:00, 433.70it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE5_put_the_white_mug_on_the_left_plate_and_put_the_yellow_and_white_mug_on_the_right_plate_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 88%|████████▊ | 44/50 [00:00<00:00, 434.66it/s]100%|██████████| 50/50 [00:00<00:00, 432.68it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/STUDY_SCENE1_pick_up_the_book_and_place_it_in_the_back_compartment_of_the_caddy_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 84%|████████▍ | 42/50 [00:00<00:00, 416.61it/s]100%|██████████| 50/50 [00:00<00:00, 435.83it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE6_put_the_white_mug_on_the_plate_and_put_the_chocolate_pudding_to_the_right_of_the_plate_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 84%|████████▍ | 42/50 [00:00<00:00, 409.99it/s]100%|██████████| 50/50 [00:00<00:00, 429.68it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE1_put_both_the_alphabet_soup_and_the_cream_cheese_box_in_the_basket_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 80%|████████  | 40/50 [00:00<00:00, 397.64it/s]100%|██████████| 50/50 [00:00<00:00, 405.03it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE8_put_both_moka_pots_on_the_stove_demo.hdf5
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/50 [00:00<?, ?it/s] 78%|███████▊  | 39/50 [00:00<00:00, 389.44it/s]100%|██████████| 50/50 [00:00<00:00, 398.71it/s]
+/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE6_put_the_yellow_and_white_mug_in_the_microwave_and_close_it_demo.hdf5
+
+=================== Lifelong Benchmark Information  ===================
+ Name: libero_10
+ # Tasks: 10
+    - Task 1:
+        put both the alphabet soup and the tomato sauce in the basket
+    - Task 2:
+        put both the cream cheese box and the butter in the basket
+    - Task 3:
+        turn on the stove and put the moka pot on it
+    - Task 4:
+        put the black bowl in the bottom drawer of the cabinet and close it
+    - Task 5:
+        put the white mug on the left plate and put the yellow and white mug on the right plate
+    - Task 6:
+        pick up the book and place it in the back compartment of the caddy
+    - Task 7:
+        put the white mug on the plate and put the chocolate pudding to the right of the plate
+    - Task 8:
+        put both the alphabet soup and the cream cheese box in the basket
+    - Task 9:
+        put both moka pots on the stove
+    - Task 10:
+        put the yellow and white mug in the microwave and close it
+ # demonstrations: (50) (50) (50) (50) (50) (50) (50) (50) (50) (50)
+ # sequences: (14700) (13021) (13298) (12434) (12909) (9470) (12756) (13476) (20794) (15232)
+=======================================================================
+
+[info] start lifelong learning with algo Sequential
+[info] policy has 42.2 GFLOPs and 4.2 MParams
+
+[info] start training on task 0

@@ -4,4 +4,4 @@ network_kwargs:
     freeze: false
     remove_layer_num: 4
     no_stride: false
-    language_fusion: 'film'
+    language_fusion: 'none'
