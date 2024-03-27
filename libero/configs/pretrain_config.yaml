@@ -16,12 +16,16 @@ data:
 eval:
   eval: false
 train:
-  batch_size: 512
-  num_workers: 6df
+  batch_size: 256
+  num_workers: 6
   n_epochs: 100
+policy:
+  cross_z: true
+  use_causal_decoder: true
 
+exp_name: "m3cz_32_f4_k3s1_ft"
 seed: 10000
-use_wandb: false
+use_wandb: true
 wandb_project: "diff-skill-libero"
 folder: null # use default path
 bddl_folder: null # use default path
@@ -32,4 +36,4 @@ task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: true
 pretrain_model_path: ""
-benchmark_name: "LIBERO_10"
+benchmark_name: "LIBERO_90"

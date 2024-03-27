@@ -133,8 +133,7 @@ def main(hydra_cfg):
     cfg.shape_meta = shape_meta
     print(cfg.experiment_name)
     if cfg.use_wandb:
-        wandb.init(project="libero", config=cfg)
-        wandb.run.name = cfg.experiment_name
+        wandb.init(project="libero", config=cfg, name=cfg.experiment_name, save_code=True)
 
     result_summary = {
         "L_conf_mat": np.zeros((n_manip_tasks, n_manip_tasks)),  # loss confusion matrix
