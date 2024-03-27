@@ -10,6 +10,7 @@ from libero.lifelong.algos.base import Sequential
 from libero.lifelong.metric import *
 from libero.lifelong.models import *
 from libero.lifelong.utils import *
+from tqdm import tqdm
 import wandb
 
 class Multitask(Sequential):
@@ -19,16 +20,36 @@ class Multitask(Sequential):
 
     def __init__(self, n_tasks, cfg, **policy_kwargs):
         super().__init__(n_tasks=n_tasks, cfg=cfg, **policy_kwargs)
-        self.step = 0
 
-    def log_wandb(self,loss, info):
-        wandb.log({"loss": loss, "pp": info,}, step=self.step)
-        self.step += 1
+    def log_wandb(self,loss, info, step):
+        pp, pp_sample = info
+        wandb.log({"loss": loss, "pp": pp, "pp_sample": pp_sample,}, step=step)
+    
+    def observe(self, data):
+        """
+        How the algorithm learns on each data point.
+        """
+        data = self.map_tensor_to_device(data)
+        self.optimizer.zero_grad()
+        loss, info = self.policy.compute_loss(data)
+        (self.loss_scale * loss).backward()
+        if self.cfg.train.grad_clip is not None:
+            grad_norm = nn.utils.clip_grad_norm_(
+                self.policy.parameters(), self.cfg.train.grad_clip
+            )
+        self.optimizer.step()
+        return loss.item(), info
+
+    def eval_observe(self, data):
+        data, info = self.map_tensor_to_device(data)
+        with torch.no_grad():
+            loss = self.policy.compute_loss(data)
+        return loss.item(), info
 
     def learn_all_tasks(self, datasets, benchmark, result_summary):
         self.start_task(-1)
         concat_dataset = ConcatDataset(datasets)
-
+        data = concat_dataset[0]['obs']['agentview_rgb']
         # learn on all tasks, only used in multitask learning
         model_checkpoint_name = os.path.join(
             self.experiment_dir, f"multitask_model.pth"
@@ -40,7 +61,10 @@ class Multitask(Sequential):
             batch_size=self.cfg.train.batch_size,
             num_workers=self.cfg.train.num_workers,
             sampler=RandomSampler(concat_dataset),
-            persistent_workers=False,
+            persistent_workers=True,
+            pin_memory=True,
+            prefetch_factor=4,
+            multiprocessing_context="fork",
         )
 
         prev_success_rate = -1.0
@@ -52,19 +76,20 @@ class Multitask(Sequential):
         idx_at_best_succ = 0
         successes = []
         losses = []
-
+        steps = 0
         # start training
-        for epoch in range(0, self.cfg.train.n_epochs + 1):
+        for epoch in tqdm(range(0, self.cfg.train.n_epochs + 1)):
 
             t0 = time.time()
-            print(len(train_dataloader))
             if epoch > 0 or (self.cfg.pretrain):  # update
                 self.policy.train()
                 training_loss = 0.0
-                for (idx, data) in enumerate(train_dataloader):
+                for (idx, data) in tqdm(enumerate(train_dataloader)):
                     loss, info = self.observe(data)
                     training_loss += loss
-                    self.log_wandb(loss, info)
+                    if self.cfg.use_wandb:
+                        self.log_wandb(loss, info, steps)
+                    steps += 1
                 training_loss /= len(train_dataloader)
             else:  # just evaluate the zero-shot performance on 0-th epoch
                 training_loss = 0.0

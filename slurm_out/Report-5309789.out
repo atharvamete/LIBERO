@@ -182,3 +182,6 @@ wandb: Run `wandb offline` to turn off syncing.
 wandb: Syncing run comfy-darkness-7
 wandb: ⭐️ View project at https://wandb.ai/a-mete-2416/libero
 wandb: 🚀 View run at https://wandb.ai/a-mete-2416/libero/runs/mjj8ed34
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 5309789 ON atl1-1-03-006-1-0 CANCELLED AT 2024-03-25T07:16:18 DUE TO TIME LIMIT ***
+slurmstepd: error: *** STEP 5309789.0 ON atl1-1-03-006-1-0 CANCELLED AT 2024-03-25T07:16:18 DUE TO TIME LIMIT ***

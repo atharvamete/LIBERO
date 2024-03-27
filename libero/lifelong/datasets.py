@@ -21,6 +21,7 @@ def get_dataset(
     obs_modality,
     initialize_obs_utils=True,
     seq_len=1,
+    obs_seq_len=1,
     frame_stack=1,
     filter_key=None,
     hdf5_cache_mode="low_dim",
@@ -47,6 +48,7 @@ def get_dataset(
         load_next_obs=False,
         frame_stack=frame_stack,
         seq_length=seq_len,  # length-10 temporal sequences
+        obs_seq_length=obs_seq_len,
         pad_frame_stack=True,
         pad_seq_length=True,  # pad last obs per trajectory to ensure all sequences are sampled
         get_pad_mask=False,

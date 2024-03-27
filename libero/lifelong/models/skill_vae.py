@@ -42,18 +42,18 @@ class SkillVAE_Model(BasePolicy):
             extra_embedding_size=policy_cfg.extra_embedding_size,
         )
 
-        if cfg.loss_type == "mse":
+        if cfg.train.loss_type == "mse":
             self.loss = torch.nn.MSELoss()
-        elif cfg.loss_type == "l1":
+        elif cfg.train.loss_type == "l1":
             self.loss = torch.nn.L1Loss()
         else:
-            raise NotImplementedError(f"Unknown loss type {cfg.loss_type}")
+            raise NotImplementedError(f"Unknown loss type {cfg.train.loss_type}")
 
     def obs_encode(self, data):
         ### 1. encode image
         encoded = []
         for img_name in self.image_encoders.keys():
-            x = data["obs"][img_name][:,0,...].unsqueeze(1)
+            x = data["obs"][img_name]
             B, T, C, H, W = x.shape
             e = self.image_encoders[img_name]["encoder"](
                 x.reshape(B * T, C, H, W),
@@ -64,16 +64,15 @@ class SkillVAE_Model(BasePolicy):
             ).view(B, T, -1)
             encoded.append(e)
         # 2. add gripper info
-        encoded.append(self.extra_encoder(data["obs"])[:,0,...])  # add (B, T, H_extra)
-        # for i in range(len(encoded)):
-        #     print(encoded[i].shape,f'encoded[{i}] shape')
+        encoded.append(self.extra_encoder(data["obs"]).squeeze(2))  # add (B, T, H_extra)
         encoded = torch.cat(encoded, -1)  # (B, T, H_all)
         return encoded.squeeze(1)
 
     def forward(self, data):
         init_obs = self.obs_encode(data)
         pred, pp, pp_sample, commitment_loss = self.skill_vae(data["actions"], init_obs)
-        return pred, pp
+        info = (pp, pp_sample)
+        return pred, info
 
     def loss_fn(self, pred, target):
         return self.loss(pred, target)

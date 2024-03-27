@@ -76,6 +76,7 @@ def main(hydra_cfg):
                 obs_modality=cfg.data.obs.modality,
                 initialize_obs_utils=(i == 0),
                 seq_len=cfg.data.seq_len,
+                obs_seq_len=cfg.data.obs_seq_len,
             )
         except Exception as e:
             print(

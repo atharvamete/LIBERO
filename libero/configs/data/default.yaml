@@ -2,7 +2,8 @@
 data_modality:
   - "image"
   - "proprio"
-seq_len: 32
+seq_len: 10
+obs_seq_len: 1
 frame_stack: 1
 use_eye_in_hand: true
 use_gripper: true

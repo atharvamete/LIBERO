@@ -421,3 +421,6 @@ wandb: Run `wandb offline` to turn off syncing.
 wandb: Syncing run devout-tree-8
 wandb: ⭐️ View project at https://wandb.ai/a-mete-2416/libero
 wandb: 🚀 View run at https://wandb.ai/a-mete-2416/libero/runs/bn0wdffz
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 5309802 ON atl1-1-03-006-1-0 CANCELLED AT 2024-03-25T07:21:48 DUE TO TIME LIMIT ***
+slurmstepd: error: *** STEP 5309802.0 ON atl1-1-03-006-1-0 CANCELLED AT 2024-03-25T07:21:48 DUE TO TIME LIMIT ***

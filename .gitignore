@@ -12,7 +12,6 @@ clip/
 gpt/
 bert/
 logs/
-libero/outputs
 *.mp4
 libero.egg-info/
 .vscode/

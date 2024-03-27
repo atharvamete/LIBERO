@@ -1,21 +1,28 @@
 # @package _global_
 
 defaults:
-  - _self_
   - data: default
   - policy: skill_vae
   - train: default
   - eval: default
   - lifelong: multitask
   - test: null
+  - _self_
 
-loss_type: "l1"
+# change defaults
+data:
+  seq_len: 32
+  obs_seq_len: 1
+eval:
+  eval: false
+train:
+  batch_size: 512
+  num_workers: 6df
+  n_epochs: 100
 
 seed: 10000
-use_wandb: true
+use_wandb: false
 wandb_project: "diff-skill-libero"
-# experiment_name: "pretrain"
-
 folder: null # use default path
 bddl_folder: null # use default path
 init_states_folder: null # use default path
@@ -25,4 +32,4 @@ task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: true
 pretrain_model_path: ""
-benchmark_name: "LIBERO_90"
+benchmark_name: "LIBERO_10"
