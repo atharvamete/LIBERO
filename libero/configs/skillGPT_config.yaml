@@ -2,10 +2,10 @@
 
 defaults:
   - data: default
-  - policy: skill_vae
+  - policy: skill_GPT
   - train: default
   - eval: default
-  - lifelong: multitask_pretrain
+  - lifelong: multitask
   - test: null
   - _self_
 
@@ -14,22 +14,24 @@ data:
   seq_len: 32
   obs_seq_len: 1
 eval:
-  eval: false
+  eval: true
+lifelong:
+  eval_in_train: true
 train:
   batch_size: 256
   num_workers: 6
   n_epochs: 100
 policy:
-  use_m4: 0
   cross_z: false
-  vq_type: "fsq"
-  fsq_level: [3,3,3,3,3,3,3]
+  fsq_level: [8,5,5,5]
   use_causal_decoder: false
+  use_m4: false
   strides: [1,1,1]
 
-exp_name: "m3co_32_f7_k3s1_tf"
+pretrain_skillVAE_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_10/Multitask/SkillVAE_Model/m3co_32_f4_k3s1_ff/run_004/multitask_model_ep100.pth"
+exp_name: "trial" #"m3co_32_f4_k3s1_ff"
 seed: 10000
-use_wandb: true
+use_wandb: false
 wandb_project: "diff-skill-libero"
 folder: null # use default path
 bddl_folder: null # use default path
@@ -38,6 +40,6 @@ load_previous_model: false
 device: "cuda"
 task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
-pretrain: true
+pretrain: false
 pretrain_model_path: ""
-benchmark_name: "LIBERO_90"
+benchmark_name: "LIBERO_10"

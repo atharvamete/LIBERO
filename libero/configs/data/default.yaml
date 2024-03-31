@@ -7,8 +7,8 @@ obs_seq_len: 1
 frame_stack: 1
 use_eye_in_hand: true
 use_gripper: true
-use_joint: false
-use_ee: false
+use_joint: true
+use_ee: true
 
 max_word_len: 25
 
@@ -25,13 +25,15 @@ obs:
     modality:
         rgb: ["agentview_rgb", "eye_in_hand_rgb"]
         depth: []
-        low_dim: ["gripper_states"]
+        low_dim: ["gripper_states", "joint_states", "ee_pos"]
 
 # mapping from obs.modality keys to robosuite environment observation keys
 obs_key_mapping:
   agentview_rgb: agentview_image
   eye_in_hand_rgb: robot0_eye_in_hand_image
   gripper_states: robot0_gripper_qpos
+  joint_states: robot0_joint_pos
+  ee_pos: robot0_eef_pos
 
 # action related
 affine_translate: 4

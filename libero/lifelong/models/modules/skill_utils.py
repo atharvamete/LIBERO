@@ -5,6 +5,42 @@ import torch
 from torch.nn import functional as F
 from einops.layers.torch import Rearrange
 
+
+###############################################################################
+#
+# MLP projection module
+#
+###############################################################################
+
+
+class MLP_Proj(nn.Module):
+    """
+    Encode any embedding
+
+    h = f(e), where
+        e: embedding from some model
+        h: latent embedding (B, H)
+    """
+
+    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
+        super().__init__()
+        assert num_layers >= 1, "[error] num_layers < 1"
+        sizes = [input_size] + [hidden_size] * (num_layers - 1) + [output_size]
+        layers = []
+        for i in range(num_layers - 1):
+            layers.append(nn.Linear(sizes[i], sizes[i + 1]))
+            layers.append(nn.ReLU(inplace=True))
+        layers.append(nn.Linear(sizes[-2], sizes[-1]))
+        self.projection = nn.Sequential(*layers)
+
+    def forward(self, data):
+        """
+        data:
+            task_emb: (B, E)
+        """
+        h = self.projection(data)  # (B, H)
+        return h
+
 ###############################################################################
 #
 # 1D conv modules
@@ -179,26 +215,6 @@ class ResidualTemporalDeConvBlock(nn.Module):
 #
 ###############################################################################
 
-class GPTConfig:
-    """base GPT config, params common to all GPT versions"""
-    embd_pdrop = 0.1
-    resid_pdrop = 0.1
-    attn_pdrop = 0.1
-    discrete_input = False
-    input_size = 10
-    n_embd = 256
-    n_layer = 2
-    n_head = 4
-    causal_attention = True
-    causal_cross_attention = False
-    output_dim = 7
-
-    def __init__(self, vocab_size, block_size, **kwargs):
-        self.vocab_size = vocab_size
-        self.block_size = block_size
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
 class CrossAttention(nn.Module):
     """
     A vanilla multi-head masked cross-attention layer with a projection at the end.
@@ -353,6 +369,25 @@ class Block(nn.Module):
         x = x + self.mlp(self.ln2(x))
         return x, context
 
+class GPTConfig:
+    embd_pdrop = 0.1
+    resid_pdrop = 0.1
+    attn_pdrop = 0.1
+    discrete_input = False
+    input_size = 10
+    n_embd = 256
+    n_layer = 2
+    n_head = 4
+    causal_attention = True
+    causal_cross_attention = False
+    output_dim = 7
+
+    def __init__(self, vocab_size, block_size, **kwargs):
+        self.vocab_size = vocab_size
+        self.block_size = block_size
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
 class GPT(nn.Module):
     """the full GPT language model, with a context size of block_size"""
 
@@ -454,11 +489,8 @@ class GPT(nn.Module):
         else:
             b, t, dim = idx.size()
         assert t <= self.block_size, "Cannot forward, model block size is exhausted."
-
         # forward the GPT model
         token_embeddings = self.tok_emb(idx)  # each index maps to a (learnable) vector, B * T * n_emb
-        if attach_emb is not None:
-            token_embeddings[:, attach_pos, :] = attach_emb
         position_embeddings = self.pos_emb[
             :, :t, :
         ]  # each position maps to a (learnable) vector
@@ -466,3 +498,246 @@ class GPT(nn.Module):
         x,_ = self.blocks((x, context))
         x = self.ln_f(x)
         return x
+
+
+
+###############################################################################
+#
+# SkillGPT module for skill-policy
+#
+###############################################################################
+
+class SkillGPT_Config:
+    obs_pdrop = 0.1
+    embd_pdrop = 0.1
+    resid_pdrop = 0.1
+    attn_pdrop = 0.1
+    discrete_input = True
+    input_size = 10
+    n_embd = 768
+    n_layer = 12
+    n_head = 12
+    causal_attention = True
+    causal_cross_attention = False
+
+    def __init__(self, prior_cfg, offset_dim):
+        self.vocab_size = prior_cfg.vocab_size
+        self.block_size = prior_cfg.block_size
+        self.output_dim = prior_cfg.output_dim
+        self.n_head = prior_cfg.n_head
+        self.n_layer = prior_cfg.n_layer
+        self.n_embd = prior_cfg.n_embd
+        self.offset_dim = offset_dim
+
+class SkillGPT(nn.Module):
+    def __init__(self, config: SkillGPT_Config):
+        super().__init__()
+        if config.discrete_input:
+            self.tok_emb = nn.Embedding(config.vocab_size, config.n_embd)
+        else:
+            self.tok_emb = nn.Linear(config.input_size, config.n_embd)
+        self.discrete_input = config.discrete_input
+        self.pos_emb = nn.Parameter(torch.zeros(1, config.block_size, config.n_embd))
+        self.drop = nn.Dropout(config.embd_pdrop)
+        # transformer
+        self.blocks = nn.Sequential(*[Block(config) for _ in range(config.n_layer)])
+        # decoder head
+        self.ln_f = nn.LayerNorm(config.n_embd)
+        self.head = nn.Linear(config.n_embd, config.output_dim, bias=False)
+        offset_layers = [
+            nn.Linear(config.n_embd, 512),
+            nn.GELU(),
+            nn.Linear(512, 512),
+            nn.GELU(),
+            nn.Linear(512, config.offset_dim),
+        ]
+        self.offset_head = nn.Sequential(*offset_layers)
+
+        self.block_size = config.block_size
+        self.apply(self._init_weights)
+
+    def get_block_size(self):
+        return self.block_size
+
+    def _init_weights(self, module):
+        if isinstance(module, (nn.Linear, nn.Embedding)):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if isinstance(module, nn.Linear) and module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.LayerNorm):
+            torch.nn.init.zeros_(module.bias)
+            torch.nn.init.ones_(module.weight)
+        elif isinstance(module, GPT):
+            torch.nn.init.normal_(module.pos_emb, mean=0.0, std=0.02)
+
+    def configure_optimizers(self, train_config):
+        """
+        This long function is unfortunately doing something very simple and is being very defensive:
+        We are separating out all parameters of the model into two buckets: those that will experience
+        weight decay for regularization and those that won't (biases, and layernorm/embedding weights).
+        We are then returning the PyTorch optimizer object.
+        """
+
+        # separate out all parameters to those that will and won't experience regularizing weight decay
+        decay = set()
+        no_decay = set()
+        whitelist_weight_modules = (torch.nn.Linear,)
+        blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
+        for mn, m in self.named_modules():
+            for pn, p in m.named_parameters():
+                fpn = "%s.%s" % (mn, pn) if mn else pn  # full param name
+
+                if pn.endswith("bias"):
+                    # all biases will not be decayed
+                    no_decay.add(fpn)
+                elif pn.endswith("weight") and isinstance(m, whitelist_weight_modules):
+                    # weights of whitelist modules will be weight decayed
+                    decay.add(fpn)
+                elif pn.endswith("weight") and isinstance(m, blacklist_weight_modules):
+                    # weights of blacklist modules will NOT be weight decayed
+                    no_decay.add(fpn)
+
+        # special case the position embedding parameter in the root GPT module as not decayed
+        no_decay.add("pos_emb")
+
+        # validate that we considered every parameter
+        param_dict = {pn: p for pn, p in self.named_parameters()}
+        inter_params = decay & no_decay
+        union_params = decay | no_decay
+        assert (
+            len(inter_params) == 0
+        ), "parameters %s made it into both decay/no_decay sets!" % (str(inter_params),)
+        assert (
+            len(param_dict.keys() - union_params) == 0
+        ), "parameters %s were not separated into either decay/no_decay set!" % (
+            str(param_dict.keys() - union_params),
+        )
+
+        # create the pytorch optimizer object
+        optim_groups = [
+            {
+                "params": [param_dict[pn] for pn in sorted(list(decay))],
+                "weight_decay": train_config.weight_decay,
+            },
+            {
+                "params": [param_dict[pn] for pn in sorted(list(no_decay))],
+                "weight_decay": 0.0,
+            },
+        ]
+        optimizer = torch.optim.AdamW(
+            optim_groups, lr=train_config.learning_rate, betas=train_config.betas
+        )
+        return optimizer
+
+    def forward(self, idx, context, targets=None, return_offset=False):
+        if self.discrete_input:
+            b, t = idx.size()
+        else:
+            b, t, dim = idx.size()
+        assert t <= self.block_size, "Cannot forward, model block size is exhausted."
+        # forward the GPT model
+        token_embeddings = self.tok_emb(idx)  # each index maps to a (learnable) vector, B * T * n_emb
+        position_embeddings = self.pos_emb[
+            :, :t, :
+        ]  # each position maps to a (learnable) vector
+        x = self.drop(token_embeddings + position_embeddings)
+        x,_ = self.blocks((x, context))
+        x = self.ln_f(x)
+        logits = self.head(x)
+        if return_offset:
+            offset = self.offset_head(x[:,-1,:])
+        # if we are given some desired targets also calculate the loss
+        loss = None
+        if targets is not None:
+            # Calculate the loss using the modified logits and targets
+            loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), targets.reshape(-1))
+            return logits, loss, offset
+        else:
+            if return_offset:
+                return logits, offset
+            else:
+                return logits
+
+
+###############################################################################
+#
+# sampling utils for skill-policy
+#
+###############################################################################
+
+
+def beam_search(start_token, model, context, max_len, device, beam_size=5, temperature=1):
+    # Initialize beam search variables
+    beam = [(torch.tensor([start_token], device=device), 0)]  # (sequence, cumulative log probability)
+    # Perform beam search
+    for _ in range(max_len):
+        new_beam = []
+        for seq, seq_score in beam:
+            with torch.no_grad():
+                x = seq.unsqueeze(0).to(device)
+                # print(x,'input to model')
+                outs = model(x, context)
+                logits = outs[0, -1, :] / temperature
+                log_probs = torch.log_softmax(logits, dim=-1)
+            # Get top candidates using beam search
+            top_log_probs, top_indices = torch.topk(log_probs, beam_size, dim=-1)
+            for log_prob, index in zip(top_log_probs.squeeze().tolist(), top_indices.squeeze().tolist()):
+                new_seq = torch.cat((seq, torch.tensor([index], device=device)), dim=0)
+                new_score = seq_score + log_prob
+                new_beam.append((new_seq, new_score))
+        # Sort and select top sequences from the beam
+        new_beam.sort(key=lambda x: x[1], reverse=True)
+        beam = new_beam[:beam_size]
+    # Select the sequence with the highest score
+    best_seq, _ = max(beam, key=lambda x: x[1])
+    return best_seq.tolist()  # Convert to list
+
+def random_sampling(logits):
+    # Sample token index randomly
+    sampled_index = np.random.choice(len(logits))
+    return sampled_index
+
+def greedy_sampling(logits):
+    # Find the token index with the highest probability
+    sampled_index = np.argmax(logits)
+    return sampled_index
+
+def top_k_sampling(logits, k, temperature=1.0):
+    # Apply temperature scaling
+    scaled_logits = logits / temperature
+    # Compute probabilities using softmax
+    log_probs = torch.log_softmax(scaled_logits, dim=-1)
+    # Find the top k indices
+    top_log_probs, top_indices = torch.topk(log_probs, k, dim=-1)
+    # Create a mask to filter out the non-top k values
+    top_k_mask = torch.full_like(log_probs, float('-inf'))
+    top_k_mask = top_k_mask.scatter(-1, top_indices, top_log_probs)
+    # Apply the mask to the log probabilities
+    log_probs = log_probs + top_k_mask
+    # Sample token index based on the filtered probabilities
+    sample_indices = torch.multinomial(log_probs.exp(), num_samples=1, replacement=True)
+    return sample_indices
+
+
+def top_p_sampling(logits, p, temperature=1.0):
+    # Apply temperature scaling
+    scaled_logits = logits / temperature
+    # Compute probabilities using softmax
+    probabilities = np.exp(scaled_logits - np.max(scaled_logits)) / np.sum(np.exp(scaled_logits - np.max(scaled_logits)))
+    # Sort probabilities and indices in decreasing order
+    sorted_indices = np.argsort(probabilities)[::-1]
+    sorted_probs = probabilities[sorted_indices]
+    # Compute cumulative probabilities
+    cumulative_probs = np.cumsum(sorted_probs)
+    # Find the top p% indices
+    if np.max(probabilities) > p:
+        # If the highest probability is less than p, include it to ensure at least one token is selected
+        selected_indices = sorted_indices[:1]
+    else:
+        selected_indices = sorted_indices[cumulative_probs <= p]
+    # Normalize probabilities for sampling
+    selected_probs = probabilities[selected_indices]
+    selected_probs /= np.sum(selected_probs)
+    # Sample token index based on probabilities corresponding to selected indices
+    sampled_index = np.random.choice(selected_indices, p=selected_probs)
+    return sampled_index

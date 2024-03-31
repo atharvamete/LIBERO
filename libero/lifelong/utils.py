@@ -123,7 +123,7 @@ def create_experiment_dir(cfg):
 
     experiment_dir = (
         f"./{prefix}/{cfg.benchmark_name}/{cfg.lifelong.algo}/"
-        + f"{cfg.policy.policy_type}/{cfg.exp_name}"
+        + f"{cfg.policy.policy_type}/{cfg.policy.image_encoder.network}/{cfg.exp_name}"
     )
 
     if not os.path.exists(experiment_dir):

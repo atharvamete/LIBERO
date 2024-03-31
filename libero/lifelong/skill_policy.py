@@ -34,7 +34,7 @@ from libero.lifelong.utils import (
 )
 
 
-@hydra.main(config_path="../configs", config_name="pretrain_config", version_base=None)
+@hydra.main(config_path="../configs", config_name="skillGPT_config", version_base=None)
 def main(hydra_cfg):
     # preprocessing
     yaml_config = OmegaConf.to_yaml(hydra_cfg)
@@ -174,7 +174,7 @@ def main(hydra_cfg):
     with open(os.path.join(cfg.experiment_dir, "config.json"), "w") as f:
         json.dump(cfg, f, cls=NpEncoder, indent=4)
 
-    if cfg.lifelong.algo == "Multitask_Pretrain" or cfg.lifelong.algo == "Multitask":
+    if cfg.lifelong.algo == "Multitask":
 
         algo.train()
         s_fwd, l_fwd = algo.learn_all_tasks(datasets, benchmark, result_summary)

@@ -1,13 +1,14 @@
-policy_type: SkillVAE_Model
+policy_type: SkillGPT_Model
 extra_num_layers: 0
-extra_hidden_size: 32
-extra_embedding_size: 32 # joint_states emb size is twice this value
+extra_hidden_size: 64
+extra_embedding_size: 64
 
+mpc_horizon: 16
 cross_z: false
 use_m4: false
 action_dim: 7
 obs_emb_dim: 256
-cat_obs_dim: 640
+cat_obs_dim: 576 # calculate here itself
 encoder_dim: 256
 decoder_dim: 256
 skill_block_size: 32
@@ -19,17 +20,30 @@ decoder_layers: 4
 
 resid_pdrop: 0.1
 attn_pdrop: 0.1
-use_causal_encoder: true
-use_causal_decoder: true
+use_causal_encoder: false
+use_causal_decoder: false
 
-vq_type: "fsq" # "vq" or "fsq"
+vq_type: "fsq"
 fsq_level: [8,5,5,5]
-codebook_dim: 512
-codebook_size: 1024
+codebook_dim: 256
+codebook_size: 512
 
 kernel_sizes: [5,3,3]
 strides: [1,1,1]
 
+prior:
+    vocab_size: 1004
+    block_size: 32
+    output_dim: 1000
+    start_token: 1001
+    n_layer: 6
+    n_head: 6
+    n_embd: 120
+    beam_size: 1
+    temperature: 1.0
+
+offset_loss_scale: 1
+lang_emb_dim: 512 # clip embedding size
 defaults:
     - data_augmentation@color_aug: batch_wise_img_color_jitter_group_aug.yaml
     - data_augmentation@translation_aug: translation_aug.yaml

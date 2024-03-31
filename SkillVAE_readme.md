@@ -5,4 +5,4 @@
 
 Command to train stage 1:  
 1. ```tmux new -s train1```  
-2. ```export CUDA_VISIBLE_DEVICES=6 && export MUJOCO_EGL_DEVICE_ID=6 && python libero/lifelong/pretrain.py```
+2. ```export CUDA_VISIBLE_DEVICES=7 && export MUJOCO_EGL_DEVICE_ID=7 && python libero/lifelong/pretrain.py```
