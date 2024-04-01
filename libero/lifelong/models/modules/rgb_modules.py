@@ -261,3 +261,50 @@ class ResnetEncoder(nn.Module):
 
     def output_shape(self, input_shape, shape_meta):
         return self.output_shape
+
+class DINOEncoder(nn.Module):
+    def __init__(
+        self,
+        input_shape,
+        output_size,
+        pretrained=True,
+    ):
+        super().__init__()
+        assert (
+            len(input_shape) == 3
+        ), "[error] input shape of resnet should be (C, H, W)"
+
+        mean = (0.485, 0.456, 0.406)
+        std = (0.229, 0.224, 0.225)
+        self.preprocess = torchvision.transforms.Compose(
+            [
+                torchvision.transforms.Resize(224, interpolation=3),
+                torchvision.transforms.Normalize(mean=mean, std=std),
+            ]
+        )
+        self.dino = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
+        self.mlp_block = nn.Sequential(
+            nn.Linear(384, 64),
+            nn.GELU(),
+            nn.Dropout(0.1),
+            nn.Linear(64, 1),
+            nn.Dropout(0.1),
+        )
+        self.projection = nn.Linear(384, output_size)
+        self.output_shape = output_size
+    
+        if pretrained:
+            for param in self.dino.parameters():
+                param.requires_grad = False
+
+    def forward(self, x, langs=None):
+        x = self.preprocess(x)
+        x = self.dino(x,is_training=True)['x_norm_patchtokens']
+        mask = self.mlp_block(x).permute(0, 2, 1)
+        mask = F.softmax(mask, dim=-1)
+        x = torch.einsum('...si,...id->...sd', mask, x)
+        x = self.projection(x)
+        return x
+
+    def output_shape(self, input_shape, shape_meta):
+        return self.output_shape
