@@ -8,6 +8,7 @@ outputs/*
 wandb
 experiments/
 experiments_clip/*
+*.out
 experiments_saved/
 clip/
 gpt/
