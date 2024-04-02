@@ -9,7 +9,7 @@ from libero.lifelong.models.base_policy import BasePolicy
 from libero.lifelong.models.skill_vae import SkillVAE_Model
 from libero.lifelong.models.modules.skill_vae_modules import *
 from libero.lifelong.models.modules.skill_utils import SkillGPT_Config, SkillGPT, MLP_Proj, beam_search, top_k_sampling
-from libero.lifelong.models.bc_transformer_policy import ExtraModalityTokens
+from libero.lifelong.models.skill_vae import ExtraModalityTokens
 from libero.lifelong.utils import torch_load_model
 from collections import deque
 
@@ -89,10 +89,10 @@ class SkillGPT_Model(BasePolicy):
         if len(self.action_queue) == 0:
             with torch.no_grad():
                 actions = self.sample_actions(data)
-                print(actions.shape, 'actions shape')
-                self.action_queue.extend(actions)
+                print(actions[0,:], 'actions added to queue')
+                self.action_queue.extend(actions[:self.mpc_horizon])
         action = self.action_queue.popleft()
-        print(action, 'action')
+        print(action, 'action to send')
         return action
     
     def sample_actions(self, data):
@@ -106,9 +106,8 @@ class SkillGPT_Model(BasePolicy):
         print(offset.shape, 'offset shape')
         print('offset max min', offset.max(), offset.min())
         pred_actions = self.skill_vae_policy.skill_vae.decode_actions(sampled_indices, init_obs)
-        print(pred_actions, 'pred_actions')
         pred_actions_with_offset = pred_actions + offset
-        pred_actions_with_offset = pred_actions_with_offset.view(-1, context.shape[0], self.act_dim)
+        pred_actions_with_offset = pred_actions_with_offset.permute(1,0,2)
         return pred_actions_with_offset.detach().cpu().numpy()
 
     def get_indices(self, context):

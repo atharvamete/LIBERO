@@ -22,13 +22,14 @@ train:
   num_workers: 6
   n_epochs: 100
 policy:
+  use_m4: 0
   cross_z: false
+  vq_type: "fsq"
   fsq_level: [8,5,5,5]
   use_causal_decoder: false
-  use_m4: false
   strides: [1,1,1]
 
-pretrain_skillVAE_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_10/Multitask/SkillVAE_Model/m3co_32_f4_k3s1_ff/run_004/multitask_model_ep100.pth"
+pretrain_skillVAE_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask_Pretrain/SkillVAE_Model/ResnetEncoder/m3co_32_f4_k3s1_tf/run_001/multitask_model_ep40.pth"
 exp_name: "trial" #"m3co_32_f4_k3s1_ff"
 seed: 10000
 use_wandb: false
@@ -42,4 +43,4 @@ task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
 pretrain_model_path: ""
-benchmark_name: "LIBERO_10"
+benchmark_name: "LIBERO_90"

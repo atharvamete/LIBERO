@@ -120,7 +120,6 @@ def evaluate_one_task_success(
             dummy = np.zeros((env_num, 7))
             for _ in range(5):
                 obs, _, _, _ = env.step(dummy)
-                print(obs,'obs from env')
 
             if task_str != "":
                 sim_state = env.get_sim_state()
