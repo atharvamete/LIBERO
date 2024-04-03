@@ -31,14 +31,14 @@ kernel_sizes: [5,3,3]
 strides: [1,1,1]
 
 prior:
-    vocab_size: 1004
+    vocab_size: 2190
     block_size: 32
-    output_dim: 1000
-    start_token: 1001
+    output_dim: 2187
+    start_token: 2188
     n_layer: 6
     n_head: 6
     n_embd: 120
-    beam_size: 1
+    beam_size: 5
     temperature: 1.0
 
 offset_loss_scale: 1

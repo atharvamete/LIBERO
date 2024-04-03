@@ -705,19 +705,15 @@ def greedy_sampling(logits):
 def top_k_sampling(logits, k, temperature=1.0):
     # Apply temperature scaling
     scaled_logits = logits / temperature
-    # Compute probabilities using softmax
-    log_probs = torch.log_softmax(scaled_logits, dim=-1)
-    # Find the top k indices
-    top_log_probs, top_indices = torch.topk(log_probs, k, dim=-1)
-    # Create a mask to filter out the non-top k values
-    top_k_mask = torch.full_like(log_probs, float('-inf'))
-    top_k_mask = top_k_mask.scatter(-1, top_indices, top_log_probs)
-    # Apply the mask to the log probabilities
-    log_probs = log_probs + top_k_mask
-    # Sample token index based on the filtered probabilities
-    sample_indices = torch.multinomial(log_probs.exp(), num_samples=1, replacement=True)
-    return sample_indices
-
+    # Find the top k values and indices
+    top_values, top_indices = torch.topk(scaled_logits, k, dim=-1)
+    # Compute probabilities from top values
+    top_probs = torch.softmax(top_values, dim=-1)
+    # Sample token index from the filtered probabilities
+    sampled_indices = torch.multinomial(top_probs, num_samples=1, replacement=True)
+    # Map the sampled index back to the original logits tensor
+    original_indices = top_indices.gather(-1, sampled_indices)
+    return original_indices
 
 def top_p_sampling(logits, p, temperature=1.0):
     # Apply temperature scaling

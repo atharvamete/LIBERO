@@ -105,7 +105,11 @@ class SkillVAE(nn.Module):
         return indices
     
     def decode_actions(self, indices, init_obs):
-        codes = self.vq.indices_to_codes(indices)
+        if self.cfg.vq_type == 'fsq':
+            codes = self.vq.indices_to_codes(indices)
+        else:
+            codes = self.vq.get_codes_from_indices(indices)
+            codes = codes.view(codes.shape[0], -1, self.cfg.codebook_dim)
         x = self.decode(codes, init_obs)
         return x
 

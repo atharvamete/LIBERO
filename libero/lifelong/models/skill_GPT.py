@@ -30,6 +30,8 @@ class SkillGPT_Model(BasePolicy):
         self.skill_vae_policy.load_state_dict(torch_load_model(cfg.pretrain_skillVAE_path)[0])
         self.skill_vae_policy = self.skill_vae_policy.to(self.device)
         self.skill_vae_policy.eval()
+        for param in self.skill_vae_policy.parameters():
+            param.requires_grad = False
 
         offset_dim = self.act_dim*self.decoder_block_size
         skillgpt_config = SkillGPT_Config(policy_cfg.prior, offset_dim)
@@ -53,11 +55,10 @@ class SkillGPT_Model(BasePolicy):
                 print(key, data[key].shape)
 
     def forward(self, data):
-        print(data["actions"], 'actions from data')
         with torch.no_grad():
             init_obs = self.skill_vae_policy.obs_encode(data)
             indices = self.skill_vae_policy.skill_vae.get_indices(data["actions"]).long()
-            print(indices, 'training indices')
+            # print(indices, 'training indices')
         start_tokens = (torch.ones((data["actions"].shape[0], 1))*self.start_token).long().to(self.device)
         x = torch.cat([start_tokens, indices[:,:-1]], dim=1)
         targets = indices.clone()
@@ -89,10 +90,8 @@ class SkillGPT_Model(BasePolicy):
         if len(self.action_queue) == 0:
             with torch.no_grad():
                 actions = self.sample_actions(data)
-                print(actions[0,:], 'actions added to queue')
                 self.action_queue.extend(actions[:self.mpc_horizon])
         action = self.action_queue.popleft()
-        print(action, 'action to send')
         return action
     
     def sample_actions(self, data):
@@ -101,10 +100,9 @@ class SkillGPT_Model(BasePolicy):
         init_obs_emb = self.obs_proj(init_obs)
         lang_emb = self.lang_proj(data["task_emb"])
         context = torch.cat([lang_emb.unsqueeze(1), init_obs_emb.unsqueeze(1)], dim=1)
-        sampled_indices, offset = self.get_indices(context)
-        print(sampled_indices, 'sampled_indices')
-        print(offset.shape, 'offset shape')
-        print('offset max min', offset.max(), offset.min())
+        sampled_indices, offset = self.get_indices_top_k(context)
+        # print(sampled_indices, 'sampled_indices')
+        # print('offset max min', offset.max(), offset.min())
         pred_actions = self.skill_vae_policy.skill_vae.decode_actions(sampled_indices, init_obs)
         pred_actions_with_offset = pred_actions + offset
         pred_actions_with_offset = pred_actions_with_offset.permute(1,0,2)

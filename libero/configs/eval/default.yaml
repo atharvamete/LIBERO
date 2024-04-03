@@ -1,8 +1,8 @@
 load_path: "" # only used when separately evaluating a pretrained model
 eval: true
-batch_size: 32
+batch_size: 64
 num_workers: 4
-n_eval: 8
+n_eval: 10
 eval_every: 10
 max_steps: 600
 use_mp: true

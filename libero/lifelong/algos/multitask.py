@@ -22,10 +22,6 @@ class Multitask(Sequential):
         super().__init__(n_tasks=n_tasks, cfg=cfg, **policy_kwargs)
 
     def log_wandb(self,loss, info, step):
-        pp, pp_sample = info
-        wandb.log({"loss": loss, "pp": pp, "pp_sample": pp_sample,}, step=step)
-    
-    def log_wandb_2(self,loss, info, step):
         offset_loss = info
         wandb.log({"prior_loss": loss, "offset_loss": offset_loss,}, step=step)
     
@@ -56,7 +52,6 @@ class Multitask(Sequential):
     def learn_all_tasks(self, datasets, benchmark, result_summary):
         self.start_task(-1)
         concat_dataset = ConcatDataset(datasets)
-        data = concat_dataset[0]['obs']['agentview_rgb']
         # learn on all tasks, only used in multitask learning
         model_checkpoint_name = os.path.join(
             self.experiment_dir, f"multitask_model.pth"
@@ -85,7 +80,7 @@ class Multitask(Sequential):
         losses = []
         steps = 0
         # start training
-        for epoch in tqdm(range(0, self.cfg.train.n_epochs + 1)):
+        for epoch in tqdm(range(1, self.cfg.train.n_epochs + 1)):
 
             t0 = time.time()
             if epoch > 0 or (self.cfg.pretrain):  # update
@@ -95,7 +90,7 @@ class Multitask(Sequential):
                     loss, info = self.observe(data)
                     training_loss += loss
                     if self.cfg.use_wandb:
-                        self.log_wandb_2(loss, info, steps)
+                        self.log_wandb(loss, info, steps)
                     steps += 1
                 training_loss /= len(train_dataloader)
             else:  # just evaluate the zero-shot performance on 0-th epoch
