@@ -62,6 +62,7 @@ def torch_load_model(model_path, map_location=None):
         cfg = model_dict["cfg"]
     if "previous_masks" in model_dict:
         previous_masks = model_dict["previous_masks"]
+    # print(model_dict["state_dict"].keys())
     return model_dict["state_dict"], cfg, previous_masks
 
 
@@ -106,10 +107,13 @@ def compute_flops(algo, dataset, cfg):
     return GFLOPs, MParams
 
 
-def create_experiment_dir(cfg):
-    prefix = "experiments"
-    if cfg.pretrain_model_path != "":
-        prefix += "_finetune"
+def create_experiment_dir(cfg, eval_flag=False):
+    if eval_flag:
+        prefix = "evaluations"
+    else:
+        prefix = "experiments"
+        if cfg.pretrain_model_path != "":
+            prefix += "_finetune"
     if cfg.data.task_order_index > 0:
         prefix += f"_permute{cfg.data.task_order_index}"
     if cfg.task_embedding_format == "one-hot":

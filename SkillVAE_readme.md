@@ -7,3 +7,4 @@ Command to train stage 1:
 1. ```tmux new -s train1```  
 2. ```export CUDA_VISIBLE_DEVICES=7 && export MUJOCO_EGL_DEVICE_ID=7 && python libero/lifelong/pretrain.py```
 3. ```export CUDA_VISIBLE_DEVICES=7 && export MUJOCO_EGL_DEVICE_ID=7 && python libero/lifelong/skill_policy.py```
+4. ```export CUDA_VISIBLE_DEVICES=0 && export MUJOCO_EGL_DEVICE_ID=0 && python libero/lifelong/skill_policy_eval.py```

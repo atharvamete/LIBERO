@@ -175,6 +175,7 @@ def evaluate_success(cfg, algo, benchmark, task_ids, result_summary=None):
         success_rate = evaluate_one_task_success(
             cfg, algo, task_i, task_emb, i, sim_states=curr_summary, task_str=task_str
         )
+        print(f"[info] task_{i}: {benchmark.get_task(i).language} | success rate: {success_rate}")
         successes.append(success_rate)
     return np.array(successes)
 
@@ -209,14 +210,16 @@ def evaluate_loss(cfg, algo, benchmark, datasets):
             batch_size=cfg.eval.batch_size,
             num_workers=cfg.eval.num_workers,
             shuffle=False,
+            multiprocessing_context="fork",
         )
         test_loss = 0
         for data in dataloader:
             data = TensorUtils.map_tensor(
                 data, lambda x: safe_device(x, device=cfg.device)
             )
-            loss = algo.policy.compute_loss(data)
+            loss, _ = algo.policy.compute_loss(data)
             test_loss += loss.item()
         test_loss /= len(dataloader)
+        print(f"[info] task_{i}: {benchmark.get_task(i).language} | loss: {test_loss:.4f}")
         losses.append(test_loss)
     return np.array(losses)

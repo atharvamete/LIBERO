@@ -27,7 +27,8 @@ class SkillGPT_Model(BasePolicy):
         self.decoder_block_size = policy_cfg.skill_block_size
         
         self.skill_vae_policy = SkillVAE_Model(cfg, shape_meta)
-        self.skill_vae_policy.load_state_dict(torch_load_model(cfg.pretrain_skillVAE_path)[0])
+        if cfg.pretrain_skillVAE_path is not None:
+            self.skill_vae_policy.load_state_dict(torch_load_model(cfg.pretrain_skillVAE_path)[0])
         self.skill_vae_policy = self.skill_vae_policy.to(self.device)
         self.skill_vae_policy.eval()
         for param in self.skill_vae_policy.parameters():

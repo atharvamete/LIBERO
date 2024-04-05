@@ -1,0 +1,244 @@
+{
+    "data": {
+        "data_modality": [
+            "image",
+            "proprio"
+        ],
+        "seq_len": 32,
+        "obs_seq_len": 1,
+        "frame_stack": 1,
+        "use_eye_in_hand": true,
+        "use_gripper": true,
+        "use_joint": true,
+        "use_ee": true,
+        "max_word_len": 25,
+        "state_dim": null,
+        "num_kp": 64,
+        "img_h": 128,
+        "img_w": 128,
+        "task_group_size": 1,
+        "task_order_index": 0,
+        "shuffle_task": false,
+        "obs": {
+            "modality": {
+                "rgb": [
+                    "agentview_rgb",
+                    "eye_in_hand_rgb"
+                ],
+                "depth": [],
+                "low_dim": [
+                    "gripper_states",
+                    "joint_states",
+                    "ee_pos"
+                ]
+            }
+        },
+        "obs_key_mapping": {
+            "agentview_rgb": "agentview_image",
+            "eye_in_hand_rgb": "robot0_eye_in_hand_image",
+            "gripper_states": "robot0_gripper_qpos",
+            "joint_states": "robot0_joint_pos",
+            "ee_pos": "robot0_eef_pos"
+        },
+        "affine_translate": 4,
+        "action_scale": 1.0,
+        "train_dataset_ratio": 0.8
+    },
+    "policy": {
+        "color_aug": {
+            "network": "BatchWiseImgColorJitterAug",
+            "network_kwargs": {
+                "input_shape": null,
+                "brightness": 0.3,
+                "contrast": 0.3,
+                "saturation": 0.3,
+                "hue": 0.3,
+                "epsilon": 0.1
+            }
+        },
+        "translation_aug": {
+            "network": "TranslationAug",
+            "network_kwargs": {
+                "input_shape": [
+                    3,
+                    128,
+                    128
+                ],
+                "translation": 8
+            }
+        },
+        "image_encoder": {
+            "network": "ResnetEncoder",
+            "network_kwargs": {
+                "pretrained": false,
+                "freeze": false,
+                "remove_layer_num": 4,
+                "no_stride": false,
+                "language_fusion": "none",
+                "input_shape": [
+                    3,
+                    128,
+                    128
+                ],
+                "output_size": 256
+            }
+        },
+        "language_encoder": {
+            "network": "MLPEncoder",
+            "network_kwargs": {
+                "input_size": 512,
+                "hidden_size": 128,
+                "output_size": 128,
+                "num_layers": 1
+            }
+        },
+        "policy_type": "SkillGPT_Model",
+        "extra_num_layers": 0,
+        "extra_hidden_size": 32,
+        "extra_embedding_size": 32,
+        "cross_z": true,
+        "use_m4": 1,
+        "action_dim": 7,
+        "obs_emb_dim": 256,
+        "cat_obs_dim": 640,
+        "encoder_dim": 256,
+        "decoder_dim": 256,
+        "skill_block_size": 32,
+        "encoder_heads": 4,
+        "encoder_layers": 4,
+        "decoder_heads": 4,
+        "decoder_layers": 4,
+        "resid_pdrop": 0.1,
+        "attn_pdrop": 0.1,
+        "use_causal_encoder": true,
+        "use_causal_decoder": true,
+        "vq_type": "vq",
+        "fsq_level": [
+            8,
+            5,
+            5,
+            5
+        ],
+        "codebook_dim": 512,
+        "codebook_size": 1024,
+        "kernel_sizes": [
+            5,
+            3,
+            3
+        ],
+        "strides": [
+            2,
+            2,
+            1
+        ],
+        "prior": {
+            "vocab_size": 1030,
+            "block_size": 8,
+            "output_dim": 1024,
+            "start_token": 1025,
+            "n_layer": 6,
+            "n_head": 6,
+            "n_embd": 120,
+            "beam_size": 5,
+            "temperature": 1.0
+        },
+        "offset_loss_scale": 1,
+        "lang_emb_dim": 512,
+        "mpc_horizon": 16
+    },
+    "train": {
+        "optimizer": {
+            "name": "torch.optim.AdamW",
+            "kwargs": {
+                "lr": 0.0001,
+                "betas": [
+                    0.9,
+                    0.999
+                ],
+                "weight_decay": 0.0001
+            }
+        },
+        "scheduler": {
+            "name": "torch.optim.lr_scheduler.CosineAnnealingLR",
+            "kwargs": {
+                "eta_min": 1e-05,
+                "last_epoch": -1
+            }
+        },
+        "n_epochs": 100,
+        "batch_size": 32,
+        "num_workers": 4,
+        "grad_clip": 100.0,
+        "loss_scale": 1.0,
+        "loss_type": "l1",
+        "resume": false,
+        "resume_path": "",
+        "debug": true,
+        "use_augmentation": true
+    },
+    "eval": {
+        "load_path": "",
+        "eval": true,
+        "batch_size": 128,
+        "num_workers": 6,
+        "n_eval": 20,
+        "eval_every": 10,
+        "max_steps": 600,
+        "use_mp": true,
+        "num_procs": 20,
+        "save_sim_states": false
+    },
+    "lifelong": {
+        "algo": "Multitask",
+        "eval_in_train": false
+    },
+    "pretrain_skillVAE_path": null,
+    "pretrain_model_path": "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4_32_f4_k3s4_tt_vq/run_001/multitask_model_ep100.pth",
+    "exp_name": "eval_m4_32_f4_k3s4_tt_vq_e100",
+    "seed": 10000,
+    "use_wandb": true,
+    "wandb_project": "diff-skill-libero",
+    "folder": "/satassdscratch/amete7/LIBERO/libero/libero/../datasets",
+    "bddl_folder": "/satassdscratch/amete7/LIBERO/libero/libero/./bddl_files",
+    "init_states_folder": "/satassdscratch/amete7/LIBERO/libero/libero/./init_files",
+    "load_previous_model": false,
+    "device": "cuda",
+    "task_embedding_format": "clip",
+    "task_embedding_one_hot_offset": 1,
+    "pretrain": false,
+    "benchmark_name": "LIBERO_90",
+    "experiment_dir": "./evaluations_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/eval_m4_32_f4_k3s4_tt_vq_e100/run_001",
+    "experiment_name": "LIBERO_90_Multitask_SkillGPT_Model_ResnetEncoder_eval_m4_32_f4_k3s4_tt_vq_e100_run_001",
+    "shape_meta": {
+        "ac_dim": 7,
+        "all_shapes": {
+            "agentview_rgb": [
+                3,
+                128,
+                128
+            ],
+            "ee_pos": [
+                3
+            ],
+            "eye_in_hand_rgb": [
+                3,
+                128,
+                128
+            ],
+            "gripper_states": [
+                2
+            ],
+            "joint_states": [
+                7
+            ]
+        },
+        "all_obs_keys": [
+            "agentview_rgb",
+            "eye_in_hand_rgb",
+            "gripper_states",
+            "joint_states",
+            "ee_pos"
+        ],
+        "use_images": true
+    }
+}
