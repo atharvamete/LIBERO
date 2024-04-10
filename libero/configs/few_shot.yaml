@@ -1,0 +1,48 @@
+# @package _global_
+
+defaults:
+  - data: default
+  - policy: skill_GPT
+  - train: default
+  - eval: default
+  - lifelong: multitask
+  - test: null
+  - _self_
+
+# change defaults
+data:
+  seq_len: 32
+  obs_seq_len: 1
+  few_shot_demos: [1, 5, 10, 20, 45]
+eval:
+  eval: false
+  eval_every: 10
+lifelong:
+  eval_in_train: false
+train:
+  batch_size: 256
+  num_workers: 6
+  n_epochs: 50
+policy:
+  use_m4: 1
+  cross_z: true
+  vq_type: "fsq"
+  fsq_level: [8,5,5,5]
+  use_causal_decoder: true
+  strides: [2,2,1]
+
+exp_name: "m4_32_f4_k3s4_tt_5shot"
+seed: 10000
+use_wandb: true
+wandb_project: "diff-skill-libero"
+folder: null # use default path
+bddl_folder: null # use default path
+init_states_folder: null # use default path
+load_previous_model: false
+pretrain_skillVAE_path: null
+device: "cuda"
+task_embedding_format: "clip"
+task_embedding_one_hot_offset: 1
+pretrain: false
+pretrain_model_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4_32_f4_k3s4_tt/run_001/multitask_model_ep100.pth"
+benchmark_name: "LIBERO_10"

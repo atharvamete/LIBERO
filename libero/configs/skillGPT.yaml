@@ -14,7 +14,7 @@ data:
   seq_len: 32
   obs_seq_len: 1
 eval:
-  eval: true
+  eval: false
 lifelong:
   eval_in_train: false
 train:
