@@ -31,10 +31,10 @@ kernel_sizes: [5,3,3]
 strides: [1,1,1]
 
 prior:
-    vocab_size: 1030
-    block_size: 32
-    output_dim: 1024
-    start_token: 1025
+    vocab_size: 1004
+    block_size: 8
+    output_dim: 1000
+    start_token: 1001
     n_layer: 6
     n_head: 6
     n_embd: 120

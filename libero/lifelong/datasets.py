@@ -25,6 +25,7 @@ def get_dataset(
     frame_stack=1,
     filter_key=None,
     hdf5_cache_mode="low_dim",
+    few_demos=None,
     *args,
     **kwargs
 ):
@@ -57,6 +58,7 @@ def get_dataset(
         hdf5_use_swmr=False,
         hdf5_normalize_obs=None,
         filter_by_attribute=filter_key,  # can optionally provide a filter key here
+        few_demos=few_demos,
     )
     return dataset, shape_meta
 

@@ -9,6 +9,7 @@ wandb
 experiments/
 experiments_clip/*
 evaluations_clip/*
+experiments_finetune_clip/*
 *.out
 experiments_saved/
 clip/
