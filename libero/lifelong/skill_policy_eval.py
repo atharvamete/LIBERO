@@ -79,6 +79,7 @@ def main(hydra_cfg):
                 initialize_obs_utils=(i == 0),
                 seq_len=cfg.data.seq_len,
                 obs_seq_len=cfg.data.obs_seq_len,
+                hdf5_cache_mode=None,
             )
         except Exception as e:
             print(
@@ -162,10 +163,9 @@ def main(hydra_cfg):
     if cfg.pretrain_model_path != "":  # load a pretrained model if there is any
         try:
             algo.policy.load_state_dict(torch_load_model(cfg.pretrain_model_path)[0])
-        except:
-            print(
-                f"[error] cannot load pretrained model from {cfg.pretrain_model_path}"
-            )
+        except Exception as e:
+            print(f"[error] failed to load pretrained model from {cfg.pretrain_model_path}")
+            print(f"[error] {e}")
             sys.exit(0)
 
     print(f"[info] start lifelong learning with algo {cfg.lifelong.algo}")
@@ -185,7 +185,7 @@ def main(hydra_cfg):
 
         # evalute on all seen tasks at the end if eval.eval is true
         if cfg.eval.eval:
-            L = evaluate_loss(cfg, algo, benchmark, datasets)
+            #L = evaluate_loss(cfg, algo, benchmark, datasets)
             S = evaluate_success(
                 cfg=cfg,
                 algo=algo,
@@ -194,10 +194,10 @@ def main(hydra_cfg):
                 result_summary=result_summary if cfg.eval.save_sim_states else None,
             )
 
-            result_summary["L_conf_mat"][-1] = L
+            #result_summary["L_conf_mat"][-1] = L
             result_summary["S_conf_mat"][-1] = S
             
-            print(("[All task loss ] " + " %4.4f |" * n_tasks) % tuple(L))
+            # print(("[All task loss ] " + " %4.4f |" * n_tasks) % tuple(L))
             print(("[All task succ.] " + " %4.2f |" * n_tasks) % tuple(S))
 
             if cfg.use_wandb:

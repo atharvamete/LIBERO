@@ -9,7 +9,7 @@
 #SBATCH --mail-type=END,FAIL                    # Mail preferences
 #SBATCH --mail-user=amete7@gatech.edu           # E-mail address for notifications
 #SBATCH --output=slurm_out/Report-%A.out
-cd $HOME/p-agarg35-0/diff-skill/LIBERO/libero        # Change to working directory
+cd $HOME/p-agarg35-0/diff-skill/LIBERO        # Change to working directory
 
 module load anaconda3/2022.05.0.1               # Load module dependencies
 conda activate libero

@@ -1,187 +1,0 @@
----------------------------------------
-Begin Slurm Prolog: Mar-25-2024 10:56:00
-Job ID:    5312360
-User ID:   amete7
-Account:   gts-agarg35
-Job name:  SlurmPythonExample
-Partition: gpu-rtx6000
-QOS:       embers
----------------------------------------
-Running the following command:
-python lifelong/pretrain.py train.num_workers=0
-[robosuite WARNING] No private macro file found! (macros.py:53)
-[robosuite WARNING] It is recommended to use a private macro file (macros.py:54)
-[robosuite WARNING] To setup, run: python /storage/home/hcoda1/0/amete7/.conda/envs/libero/lib/python3.8/site-packages/robosuite/scripts/setup_macros.py (macros.py:55)
-/storage/home/hcoda1/0/amete7/.conda/envs/libero/lib/python3.8/site-packages/thop/profile.py:12: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
-  if LooseVersion(torch.__version__) < LooseVersion("1.0.0"):
-{ 'bddl_folder': None,
-  'benchmark_name': 'LIBERO_10',
-  'data': { 'action_scale': 1.0,
-            'affine_translate': 4,
-            'data_modality': ['image', 'proprio'],
-            'frame_stack': 1,
-            'img_h': 128,
-            'img_w': 128,
-            'max_word_len': 25,
-            'num_kp': 64,
-            'obs': { 'modality': { 'depth': [],
-                                   'low_dim': ['gripper_states'],
-                                   'rgb': [ 'agentview_rgb',
-                                            'eye_in_hand_rgb']}},
-            'obs_key_mapping': { 'agentview_rgb': 'agentview_image',
-                                 'eye_in_hand_rgb': 'robot0_eye_in_hand_image',
-                                 'gripper_states': 'robot0_gripper_qpos'},
-            'seq_len': 32,
-            'shuffle_task': False,
-            'state_dim': None,
-            'task_group_size': 1,
-            'task_order_index': 0,
-            'train_dataset_ratio': 0.8,
-            'use_ee': False,
-            'use_eye_in_hand': True,
-            'use_gripper': True,
-            'use_joint': False},
-  'device': 'cuda',
-  'eval': { 'batch_size': 64,
-            'eval': False,
-            'eval_every': 5,
-            'load_path': '',
-            'max_steps': 600,
-            'n_eval': 20,
-            'num_procs': 20,
-            'num_workers': 4,
-            'save_sim_states': False,
-            'use_mp': True},
-  'folder': None,
-  'init_states_folder': None,
-  'lifelong': {'algo': 'Multitask', 'eval_in_train': False},
-  'load_previous_model': False,
-  'loss_type': 'l1',
-  'policy': { 'action_dim': 7,
-              'attn_pdrop': 0.1,
-              'cat_obs_dim': 576,
-              'codebook_dim': 256,
-              'codebook_size': 512,
-              'color_aug': { 'network': 'BatchWiseImgColorJitterAug',
-                             'network_kwargs': { 'brightness': 0.3,
-                                                 'contrast': 0.3,
-                                                 'epsilon': 0.1,
-                                                 'hue': 0.3,
-                                                 'input_shape': None,
-                                                 'saturation': 0.3}},
-              'cross_z': False,
-              'decoder_dim': 256,
-              'decoder_heads': 4,
-              'decoder_layers': 4,
-              'encoder_dim': 256,
-              'encoder_heads': 4,
-              'encoder_layers': 4,
-              'extra_embedding_size': 64,
-              'extra_hidden_size': 64,
-              'extra_num_layers': 0,
-              'fsq_level': [8, 5, 5, 5],
-              'image_encoder': { 'network': 'ResnetEncoder',
-                                 'network_kwargs': { 'freeze': False,
-                                                     'language_fusion': 'none',
-                                                     'no_stride': False,
-                                                     'pretrained': False,
-                                                     'remove_layer_num': 4}},
-              'kernel_sizes': [5, 3, 3],
-              'language_encoder': { 'network': 'MLPEncoder',
-                                    'network_kwargs': { 'hidden_size': 128,
-                                                        'input_size': 768,
-                                                        'num_layers': 1,
-                                                        'output_size': 128}},
-              'obs_emb_dim': 256,
-              'policy_type': 'SkillVAE_Model',
-              'resid_pdrop': 0.1,
-              'skill_block_size': 32,
-              'strides': [1, 1, 1],
-              'translation_aug': { 'network': 'TranslationAug',
-                                   'network_kwargs': { 'input_shape': None,
-                                                       'translation': 8}},
-              'use_causal_decoder': False,
-              'use_causal_encoder': False,
-              'vq_type': 'fsq'},
-  'pretrain': True,
-  'pretrain_model_path': '',
-  'seed': 10000,
-  'task_embedding_format': 'clip',
-  'task_embedding_one_hot_offset': 1,
-  'train': { 'batch_size': 192,
-             'debug': True,
-             'grad_clip': 100.0,
-             'loss_scale': 1.0,
-             'n_epochs': 100,
-             'num_workers': 0,
-             'optimizer': { 'kwargs': { 'betas': [0.9, 0.999],
-                                        'lr': 0.0001,
-                                        'weight_decay': 0.0001},
-                            'name': 'torch.optim.AdamW'},
-             'resume': True,
-             'resume_path': '/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/libero/experiments_clip/LIBERO_10/Multitask/SkillVAE_Model_seed10000/run_001',
-             'scheduler': { 'kwargs': {'eta_min': 1e-05, 'last_epoch': -1},
-                            'name': 'torch.optim.lr_scheduler.CosineAnnealingLR'},
-             'use_augmentation': True},
-  'use_wandb': True,
-  'wandb_project': 'diff-skill-libero'}
-'Available algorithms:'
-{ 'agem': <class 'libero.lifelong.algos.agem.AGEM'>,
-  'er': <class 'libero.lifelong.algos.er.ER'>,
-  'ewc': <class 'libero.lifelong.algos.ewc.EWC'>,
-  'multitask': <class 'libero.lifelong.algos.multitask.Multitask'>,
-  'packnet': <class 'libero.lifelong.algos.packnet.PackNet'>,
-  'sequential': <class 'libero.lifelong.algos.base.Sequential'>,
-  'singletask': <class 'libero.lifelong.algos.single_task.SingleTask'>}
-'Available policies:'
-{ 'bcrnnpolicy': <class 'libero.lifelong.models.bc_rnn_policy.BCRNNPolicy'>,
-  'bctransformerpolicy': <class 'libero.lifelong.models.bc_transformer_policy.BCTransformerPolicy'>,
-  'bcviltpolicy': <class 'libero.lifelong.models.bc_vilt_policy.BCViLTPolicy'>,
-  'skillvae_model': <class 'libero.lifelong.models.skill_vae.SkillVAE_Model'>}
-[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-============= Initialized Observation Utils with Obs Spec =============
-
-using obs modality: rgb with keys: ['eye_in_hand_rgb', 'agentview_rgb']
-using obs modality: depth with keys: []
-using obs modality: low_dim with keys: ['gripper_states']
-SequenceDataset: loading dataset into memory...
-  0%|          | 0/50 [00:00<?, ?it/s] 12%|█▏        | 6/50 [00:00<00:00, 48.98it/s] 22%|██▏       | 11/50 [00:00<00:01, 29.84it/s] 30%|███       | 15/50 [00:00<00:01, 24.66it/s] 36%|███▌      | 18/50 [00:00<00:01, 22.61it/s] 42%|████▏     | 21/50 [00:00<00:01, 22.14it/s] 48%|████▊     | 24/50 [00:00<00:01, 21.68it/s] 54%|█████▍    | 27/50 [00:01<00:01, 19.77it/s] 62%|██████▏   | 31/50 [00:01<00:00, 24.15it/s] 68%|██████▊   | 34/50 [00:01<00:00, 23.92it/s] 74%|███████▍  | 37/50 [00:01<00:00, 24.23it/s] 80%|████████  | 40/50 [00:01<00:00, 23.56it/s] 86%|████████▌ | 43/50 [00:01<00:00, 22.52it/s] 92%|█████████▏| 46/50 [00:02<00:00, 20.13it/s] 98%|█████████▊| 49/50 [00:02<00:00, 20.48it/s]100%|██████████| 50/50 [00:02<00:00, 22.68it/s]
-/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket_demo.hdf5
-SequenceDataset: loading dataset into memory...
-  0%|          | 0/50 [00:00<?, ?it/s] 14%|█▍        | 7/50 [00:00<00:00, 52.15it/s] 26%|██▌       | 13/50 [00:00<00:01, 26.23it/s] 34%|███▍      | 17/50 [00:00<00:01, 23.88it/s] 40%|████      | 20/50 [00:00<00:01, 24.60it/s] 46%|████▌     | 23/50 [00:00<00:01, 23.14it/s] 52%|█████▏    | 26/50 [00:01<00:01, 22.23it/s] 58%|█████▊    | 29/50 [00:01<00:00, 22.04it/s] 64%|██████▍   | 32/50 [00:01<00:00, 20.91it/s] 70%|███████   | 35/50 [00:01<00:00, 18.65it/s] 76%|███████▌  | 38/50 [00:01<00:00, 20.19it/s] 82%|████████▏ | 41/50 [00:01<00:00, 18.04it/s] 86%|████████▌ | 43/50 [00:02<00:00, 16.95it/s] 90%|█████████ | 45/50 [00:02<00:00, 17.35it/s] 96%|█████████▌| 48/50 [00:02<00:00, 17.96it/s]100%|██████████| 50/50 [00:02<00:00, 21.23it/s]
-/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE2_put_both_the_cream_cheese_box_and_the_butter_in_the_basket_demo.hdf5
-SequenceDataset: loading dataset into memory...
-  0%|          | 0/50 [00:00<?, ?it/s] 12%|█▏        | 6/50 [00:00<00:00, 49.68it/s] 22%|██▏       | 11/50 [00:00<00:01, 28.91it/s] 30%|███       | 15/50 [00:00<00:01, 26.22it/s] 36%|███▌      | 18/50 [00:00<00:01, 26.10it/s] 44%|████▍     | 22/50 [00:00<00:00, 29.72it/s] 52%|█████▏    | 26/50 [00:00<00:00, 27.72it/s] 60%|██████    | 30/50 [00:01<00:00, 30.36it/s] 68%|██████▊   | 34/50 [00:01<00:00, 28.47it/s] 76%|███████▌  | 38/50 [00:01<00:00, 28.04it/s] 82%|████████▏ | 41/50 [00:01<00:00, 28.22it/s] 88%|████████▊ | 44/50 [00:01<00:00, 27.23it/s] 96%|█████████▌| 48/50 [00:01<00:00, 28.81it/s]100%|██████████| 50/50 [00:01<00:00, 28.83it/s]
-/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE3_turn_on_the_stove_and_put_the_moka_pot_on_it_demo.hdf5
-SequenceDataset: loading dataset into memory...
-  0%|          | 0/50 [00:00<?, ?it/s] 18%|█▊        | 9/50 [00:00<00:00, 77.95it/s] 34%|███▍      | 17/50 [00:00<00:00, 34.43it/s] 44%|████▍     | 22/50 [00:00<00:01, 27.74it/s] 52%|█████▏    | 26/50 [00:00<00:00, 25.28it/s] 58%|█████▊    | 29/50 [00:01<00:00, 23.75it/s] 66%|██████▌   | 33/50 [00:01<00:00, 25.73it/s] 72%|███████▏  | 36/50 [00:01<00:00, 26.46it/s] 78%|███████▊  | 39/50 [00:01<00:00, 25.58it/s] 84%|████████▍ | 42/50 [00:01<00:00, 20.28it/s] 90%|█████████ | 45/50 [00:01<00:00, 22.15it/s] 96%|█████████▌| 48/50 [00:01<00:00, 19.91it/s]100%|██████████| 50/50 [00:01<00:00, 25.09it/s]
-/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_demo.hdf5
-SequenceDataset: loading dataset into memory...
-  0%|          | 0/50 [00:00<?, ?it/s] 14%|█▍        | 7/50 [00:00<00:00, 51.14it/s] 26%|██▌       | 13/50 [00:00<00:01, 32.86it/s] 34%|███▍      | 17/50 [00:00<00:01, 26.32it/s] 40%|████      | 20/50 [00:00<00:01, 22.44it/s] 48%|████▊     | 24/50 [00:00<00:01, 24.46it/s] 54%|█████▍    | 27/50 [00:01<00:00, 24.69it/s] 60%|██████    | 30/50 [00:01<00:00, 23.39it/s] 66%|██████▌   | 33/50 [00:01<00:00, 22.24it/s] 72%|███████▏  | 36/50 [00:01<00:00, 23.35it/s] 78%|███████▊  | 39/50 [00:01<00:00, 21.62it/s] 84%|████████▍ | 42/50 [00:01<00:00, 22.26it/s] 90%|█████████ | 45/50 [00:01<00:00, 21.79it/s] 96%|█████████▌| 48/50 [00:01<00:00, 22.16it/s]100%|██████████| 50/50 [00:02<00:00, 24.10it/s]
-/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE5_put_the_white_mug_on_the_left_plate_and_put_the_yellow_and_white_mug_on_the_right_plate_demo.hdf5
-SequenceDataset: loading dataset into memory...
-  0%|          | 0/50 [00:00<?, ?it/s] 20%|██        | 10/50 [00:00<00:00, 64.14it/s] 34%|███▍      | 17/50 [00:00<00:01, 26.84it/s] 42%|████▏     | 21/50 [00:00<00:01, 26.06it/s] 50%|█████     | 25/50 [00:00<00:00, 26.64it/s] 56%|█████▌    | 28/50 [00:00<00:00, 27.19it/s] 62%|██████▏   | 31/50 [00:01<00:00, 27.33it/s] 68%|██████▊   | 34/50 [00:01<00:00, 26.63it/s] 74%|███████▍  | 37/50 [00:01<00:00, 24.79it/s] 82%|████████▏ | 41/50 [00:01<00:00, 27.20it/s] 88%|████████▊ | 44/50 [00:01<00:00, 27.17it/s] 94%|█████████▍| 47/50 [00:01<00:00, 26.52it/s]100%|██████████| 50/50 [00:01<00:00, 28.03it/s]
-/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/STUDY_SCENE1_pick_up_the_book_and_place_it_in_the_back_compartment_of_the_caddy_demo.hdf5
-SequenceDataset: loading dataset into memory...
-  0%|          | 0/50 [00:00<?, ?it/s] 14%|█▍        | 7/50 [00:00<00:00, 61.53it/s] 28%|██▊       | 14/50 [00:00<00:01, 33.58it/s] 38%|███▊      | 19/50 [00:00<00:00, 34.47it/s] 46%|████▌     | 23/50 [00:00<00:00, 28.10it/s] 54%|█████▍    | 27/50 [00:00<00:00, 24.77it/s] 60%|██████    | 30/50 [00:01<00:00, 24.40it/s] 66%|██████▌   | 33/50 [00:01<00:00, 25.07it/s] 72%|███████▏  | 36/50 [00:01<00:00, 24.62it/s] 80%|████████  | 40/50 [00:01<00:00, 28.12it/s] 86%|████████▌ | 43/50 [00:01<00:00, 27.76it/s] 92%|█████████▏| 46/50 [00:01<00:00, 27.45it/s]100%|██████████| 50/50 [00:01<00:00, 25.14it/s]100%|██████████| 50/50 [00:01<00:00, 27.54it/s]
-/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE6_put_the_white_mug_on_the_plate_and_put_the_chocolate_pudding_to_the_right_of_the_plate_demo.hdf5
-SequenceDataset: loading dataset into memory...
-  0%|          | 0/50 [00:00<?, ?it/s] 14%|█▍        | 7/50 [00:00<00:00, 49.26it/s] 24%|██▍       | 12/50 [00:00<00:01, 34.84it/s] 32%|███▏      | 16/50 [00:00<00:01, 31.63it/s] 40%|████      | 20/50 [00:00<00:01, 25.24it/s] 46%|████▌     | 23/50 [00:00<00:01, 24.55it/s] 52%|█████▏    | 26/50 [00:00<00:01, 22.64it/s] 58%|█████▊    | 29/50 [00:01<00:00, 21.32it/s] 64%|██████▍   | 32/50 [00:01<00:00, 20.53it/s] 70%|███████   | 35/50 [00:01<00:00, 22.31it/s] 76%|███████▌  | 38/50 [00:01<00:00, 21.58it/s] 82%|████████▏ | 41/50 [00:01<00:00, 22.21it/s] 90%|█████████ | 45/50 [00:01<00:00, 25.61it/s] 96%|█████████▌| 48/50 [00:01<00:00, 24.96it/s]100%|██████████| 50/50 [00:01<00:00, 25.15it/s]
-/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/LIVING_ROOM_SCENE1_put_both_the_alphabet_soup_and_the_cream_cheese_box_in_the_basket_demo.hdf5
-SequenceDataset: loading dataset into memory...
-  0%|          | 0/50 [00:00<?, ?it/s] 12%|█▏        | 6/50 [00:00<00:00, 46.83it/s] 22%|██▏       | 11/50 [00:00<00:01, 24.91it/s] 28%|██▊       | 14/50 [00:00<00:01, 23.30it/s] 34%|███▍      | 17/50 [00:00<00:01, 24.16it/s] 40%|████      | 20/50 [00:00<00:01, 24.41it/s] 46%|████▌     | 23/50 [00:01<00:01, 19.26it/s] 52%|█████▏    | 26/50 [00:01<00:01, 20.54it/s] 58%|█████▊    | 29/50 [00:01<00:01, 19.75it/s] 66%|██████▌   | 33/50 [00:01<00:00, 22.55it/s] 72%|███████▏  | 36/50 [00:01<00:00, 22.51it/s] 78%|███████▊  | 39/50 [00:01<00:00, 23.54it/s] 84%|████████▍ | 42/50 [00:01<00:00, 23.80it/s] 90%|█████████ | 45/50 [00:01<00:00, 25.18it/s] 96%|█████████▌| 48/50 [00:02<00:00, 23.37it/s]100%|██████████| 50/50 [00:02<00:00, 23.43it/s]
-/storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/libero/../datasets/libero_10/KITCHEN_SCENE8_put_both_moka_pots_on_the_stove_demo.hdf5
-SequenceDataset: loading dataset into memory...
-wandb: Currently logged in as: a-mete-2416. Use `wandb login --relogin` to force relogin
-wandb: wandb version 0.16.4 is available!  To upgrade, please run:
-wandb:  $ pip install wandb --upgrade
-wandb: Tracking run with wandb version 0.13.1
-wandb: Run data is saved locally in /storage/coda1/p-agarg35/0/amete7/diff-skill/LIBERO/libero/wandb/run-20240325_105742-n4lq0mtl
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run fancy-planet-9
-wandb: ⭐️ View project at https://wandb.ai/a-mete-2416/libero
-wandb: 🚀 View run at https://wandb.ai/a-mete-2416/libero/runs/n4lq0mtl
-srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-slurmstepd: error: *** JOB 5312360 ON atl1-1-03-007-5-0 CANCELLED AT 2024-03-25T11:00:18 ***
-slurmstepd: error: *** STEP 5312360.0 ON atl1-1-03-007-5-0 CANCELLED AT 2024-03-25T11:00:18 ***
