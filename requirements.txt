@@ -5,7 +5,7 @@
  transformers==4.21.1
  opencv-python==4.6.0.66 
  robomimic==0.2.0 
- einops==0.4.1
+ einops==0.7.0
  thop==0.1.1-2209072238
  robosuite
  bddl==1.0.1

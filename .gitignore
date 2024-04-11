@@ -10,6 +10,7 @@ experiments/
 experiments_clip/*
 evaluations_clip/*
 experiments_finetune_clip/*
+pace_models/*
 *.zip
 *.out
 experiments_saved/
