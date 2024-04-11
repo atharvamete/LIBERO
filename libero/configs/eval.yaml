@@ -7,6 +7,9 @@ defaults:
   - eval: default
   - lifelong: multitask
   - test: null
+  # - override policy/image_encoder: dino_encoder.yaml
+  # - override policy/data_augmentation@policy.color_aug: identity_aug.yaml
+  # - override policy/data_augmentation@policy.color_aug: identity_aug.yaml
   - _self_
 
 # change defaults
@@ -20,16 +23,16 @@ eval:
   batch_size: 128
   num_workers: 6
 policy:
-  use_m4: 0
-  cross_z: false
-  vq_type: "vq"
+  use_m4: 1
+  cross_z: true
+  vq_type: "fsq"
   fsq_level: [8,5,5,5]
-  use_causal_decoder: false
-  strides: [1,1,1]
+  use_causal_decoder: true
+  strides: [2,2,1]
 
 pretrain_skillVAE_path: null
-pretrain_model_path: "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m3co_32_f4_k3s1_tf_vq/run_001/multitask_model_ep100.pth"
-exp_name: "eval_m3co_32_f4_k3s1_tf_vq_e100"
+pretrain_model_path: "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/experiments_finetune_clip/LIBERO_10/Multitask/SkillGPT_Model/ResnetEncoder/m4_32_f4_k3s4_tt_5shot/run_001/multitask_model_ep20.pth"
+exp_name: "eval_m4_32_f4_k3s4_tt_5shot_e20"
 seed: 10000
 use_wandb: false
 wandb_project: "diff-skill-libero"

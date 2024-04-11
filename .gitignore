@@ -10,6 +10,7 @@ experiments/
 experiments_clip/*
 evaluations_clip/*
 experiments_finetune_clip/*
+*.zip
 *.out
 experiments_saved/
 clip/
