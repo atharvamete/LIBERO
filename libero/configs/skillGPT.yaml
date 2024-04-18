@@ -30,7 +30,7 @@ policy:
   strides: [2,2,1]
 
 pretrain_skillVAE_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask_Pretrain/SkillVAE_Model/ResnetEncoder/m4_32_f4_k3s4_tt/run_001/multitask_model_ep100.pth"
-exp_name: "m4_32_f4_k3s4_tt_n6d384"
+exp_name: "m4_32_f4_k3s4_tt_n6d384" # n6d384: GPT model num_heads=num_layers=6, d_model=384
 seed: 10000
 use_wandb: true
 wandb_project: "diff-skill-libero"
