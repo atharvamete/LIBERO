@@ -1,0 +1,15 @@
+policy_type: VQVAE_Model
+
+skill_block_size: 1
+action_dim: 7
+hidden_dim: 1024
+num_layers: 4
+codebook_dim: 512
+codebook_size: 32
+num_codebooks: 2
+
+defaults:
+    - data_augmentation@color_aug: batch_wise_img_color_jitter_group_aug.yaml
+    - data_augmentation@translation_aug: translation_aug.yaml
+    - image_encoder: resnet_encoder.yaml
+    - language_encoder: mlp_encoder.yaml

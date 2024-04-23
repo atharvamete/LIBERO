@@ -21,13 +21,9 @@ class Multitask_Pretrain(Sequential):
     def __init__(self, n_tasks, cfg, **policy_kwargs):
         super().__init__(n_tasks=n_tasks, cfg=cfg, **policy_kwargs)
 
-    def log_wandb(self,loss, info, step):
-        pp, pp_sample, commitment_loss = info
-        if self.cfg.policy.vq_type == 'vq':
-            loss = loss - commitment_loss
-            wandb.log({"loss": loss, "pp": pp, "pp_sample": pp_sample, "commitment_loss": commitment_loss}, step=step)
-        else:
-            wandb.log({"loss": loss, "pp": pp, "pp_sample": pp_sample,}, step=step)
+    def log_wandb(self, loss, info, step):
+        l1_loss, codebook_loss, pp = info
+        wandb.log({"loss": l1_loss, "pp": pp, "commitment_loss": codebook_loss}, step=step)
 
     def observe(self, data):
         """

@@ -1,0 +1,39 @@
+# @package _global_
+
+defaults:
+  - data: default
+  - policy: vq_vae
+  - train: default
+  - eval: default
+  - lifelong: multitask_pretrain
+  - test: null
+  - _self_
+
+# change defaults
+data:
+  seq_len: 32
+  obs_seq_len: 1
+eval:
+  eval: false
+  eval_every: 50
+train:
+  batch_size: 512
+  num_workers: 6
+  n_epochs: 300
+policy:
+  skill_block_size: 32
+
+exp_name: "vqbet_a32_l4h1024_c32_n2"
+seed: 10000
+use_wandb: true
+wandb_project: "diff-skill-libero"
+folder: null # use default path
+bddl_folder: null # use default path
+init_states_folder: null # use default path
+load_previous_model: false
+device: "cuda"
+task_embedding_format: "clip"
+task_embedding_one_hot_offset: 1
+pretrain: true
+pretrain_model_path: ""
+benchmark_name: "LIBERO_90" # benchmark name LIBERO_10 or LIBERO_90

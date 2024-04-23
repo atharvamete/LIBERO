@@ -1,0 +1,3 @@
+from libero.lifelong.models.modules.vector_quantize_pytorch_bet.vector_quantize_pytorch_bet import VectorQuantize
+from libero.lifelong.models.modules.vector_quantize_pytorch_bet.residual_vq import ResidualVQ, GroupedResidualVQ
+# from vector_quantize_pytorch.random_projection_quantizer import RandomProjectionQuantizerx

@@ -3,5 +3,6 @@ from libero.lifelong.models.bc_transformer_policy import BCTransformerPolicy
 from libero.lifelong.models.bc_vilt_policy import BCViLTPolicy
 from libero.lifelong.models.skill_vae import SkillVAE_Model
 from libero.lifelong.models.skill_GPT import SkillGPT_Model
+from libero.lifelong.models.vqbet_vae import VQVAE_Model
 
 from libero.lifelong.models.base_policy import get_policy_class, get_policy_list
