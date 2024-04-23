@@ -1,0 +1,41 @@
+# @package _global_
+
+defaults:
+  - data: default
+  - policy: act_policy
+  - train: default
+  - eval: default
+  - lifelong: multitask
+  - test: null
+  - override policy/image_encoder: effact_resnet_encoder.yaml
+  - _self_
+
+data:
+  seq_len: 32
+  obs_seq_len: 1
+eval:
+  eval: true
+  n_eval: 20
+  num_procs: 8
+  batch_size: 128
+  num_workers: 6
+policy:
+  gpt_encoder:
+    block_size: 8 # 20 or 516
+
+quantize: false
+
+exp_name: "eval_act"
+seed: 10000
+use_wandb: false
+wandb_project: "lifelong learning"
+folder: null # use default path
+bddl_folder: null # use default path
+init_states_folder: null # use default path
+load_previous_model: false
+device: "cuda"
+task_embedding_format: "clip"
+task_embedding_one_hot_offset: 1
+pretrain: false
+pretrain_model_path: "/ssdscratch/amete7/LIBERO/experiments_clip/LIBERO_10/Multitask/ACTPolicy/EfficientACTResnetEncoder/act_tok_2/run_002/multitask_model_ep50.pth"
+benchmark_name: "LIBERO_10"

@@ -12,6 +12,7 @@ from hydra.utils import to_absolute_path
 from thop import profile
 from torch.utils.data import DataLoader
 from transformers import AutoModel, AutoTokenizer, logging
+from libero.lifelong.quantize_utils import QLinear, count_linear
 
 
 def control_seed(seed):
@@ -100,7 +101,7 @@ def compute_flops(algo, dataset, cfg):
     tmp_loader = DataLoader(dataset, batch_size=1, num_workers=0, shuffle=True)
     data = next(iter(tmp_loader))
     data = TensorUtils.map_tensor(data, lambda x: safe_device(x, device=cfg.device))
-    macs, params = profile(model, inputs=(data,), verbose=False)
+    macs, params = profile(model, inputs=(data,), custom_ops={QLinear: count_linear}, verbose=False)
     GFLOPs = macs * 2 / 1e9
     MParams = params / 1e6
     del model
@@ -222,3 +223,23 @@ def get_task_embs(cfg, descriptions):
         task_embs = model(**tokens)["pooler_output"].detach()
     cfg.policy.language_encoder.network_kwargs.input_size = task_embs.shape[-1]
     return task_embs
+
+def replace_linear_with_qlinear(module, quantype, num_bits):
+    if quantype == 'full':
+        for name, child_module in module.named_children():
+            if isinstance(child_module, nn.Linear):
+                setattr(module, name, QLinear(child_module.in_features, child_module.out_features, num_bits=num_bits))
+            else:
+                replace_linear_with_qlinear(child_module, quantype=quantype, num_bits=num_bits)
+    elif quantype == 'mha':
+        for name, child_module in module.named_children():
+            if isinstance(child_module, nn.Linear):
+                if name == 'key' or name == 'query' or name == "value" or name == "proj":
+                    setattr(module, name, QLinear(child_module.in_features, child_module.out_features, num_bits=num_bits))
+            else:
+                replace_linear_with_qlinear(child_module, quantype=quantype, num_bits=num_bits)
+    elif quantype == 'none':
+        pass
+    else:
+        raise ValueError('quantype must be one of "full", "mha", or "none"')
+

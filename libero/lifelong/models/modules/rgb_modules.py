@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
-
+from positional_encodings.torch_encodings import PositionalEncoding2D, Summer
 
 ###############################################################################
 #
@@ -300,6 +300,112 @@ class DINOEncoder(nn.Module):
     def forward(self, x, langs=None):
         x = self.preprocess(x)
         x = self.dino(x,is_training=True)['x_norm_patchtokens']
+        mask = self.mlp_block(x).permute(0, 2, 1)
+        mask = F.softmax(mask, dim=-1)
+        x = torch.einsum('...si,...id->...sd', mask, x)
+        x = self.projection(x)
+        return x
+
+    def output_shape(self, input_shape, shape_meta):
+        return self.output_shape
+
+class ACTResnetEncoder(nn.Module):
+    def __init__(
+        self,
+        input_shape,
+        output_size,
+        pretrained=False,
+        freeze=False,
+        remove_layer_num=2,
+        no_stride=False,
+        language_dim=768,
+        language_fusion="film",
+    ):
+        super().__init__()
+        ### 1. encode input (images) using convolutional layers
+        # assert remove_layer_num <= 5, "[error] please only remove <=5 layers"
+        layers = list(torchvision.models.resnet18(pretrained=pretrained).children())[
+            :-remove_layer_num
+        ]
+        assert (
+            len(input_shape) == 3
+        ), "[error] input shape of resnet should be (C, H, W)"
+
+        in_channels = input_shape[0]
+        if in_channels != 3:  # has eye_in_hand, increase channel size
+            conv0 = nn.Conv2d(
+                in_channels=in_channels,
+                out_channels=64,
+                kernel_size=(7, 7),
+                stride=(2, 2),
+                padding=(3, 3),
+                bias=False,
+            )
+            layers[0] = conv0
+
+        self.resnet18_base = nn.Sequential(*layers)
+        self.projection = nn.Linear(128, output_size)
+        self.add_positional_emb = Summer(PositionalEncoding2D(output_size))
+
+    def forward(self, x, langs=None):
+        x = self.resnet18_base(x)
+        x = x.permute(0, 2, 3, 1)
+        x = self.projection(x)
+        x = self.add_positional_emb(x)
+        x = x.view(x.shape[0],-1,x.shape[-1])
+        return x
+
+    def output_shape(self, input_shape, shape_meta):
+        return self.output_shape
+
+class EfficientACTResnetEncoder(nn.Module):
+    def __init__(
+        self,
+        input_shape,
+        output_size,
+        pretrained=False,
+        freeze=False,
+        remove_layer_num=2,
+        no_stride=False,
+        language_dim=768,
+        language_fusion="film",
+        num_tok=8,
+    ):
+        super().__init__()
+        ### 1. encode input (images) using convolutional layers
+        # assert remove_layer_num <= 5, "[error] please only remove <=5 layers"
+        layers = list(torchvision.models.resnet18(pretrained=pretrained).children())[
+            :-remove_layer_num
+        ]
+        assert (
+            len(input_shape) == 3
+        ), "[error] input shape of resnet should be (C, H, W)"
+
+        in_channels = input_shape[0]
+        if in_channels != 3:  # has eye_in_hand, increase channel size
+            conv0 = nn.Conv2d(
+                in_channels=in_channels,
+                out_channels=64,
+                kernel_size=(7, 7),
+                stride=(2, 2),
+                padding=(3, 3),
+                bias=False,
+            )
+            layers[0] = conv0
+        self.mlp_block = nn.Sequential(
+            nn.Linear(128, 64),
+            nn.GELU(),
+            nn.Dropout(0.1),
+            nn.Linear(64, num_tok),
+            nn.Dropout(0.1),
+        )
+        self.resnet18_base = nn.Sequential(*layers)
+        self.projection = nn.Linear(128, output_size)
+
+    def forward(self, x, langs=None):
+        x = self.resnet18_base(x)
+        x = x.view(x.shape[0],x.shape[1],-1)
+        x = x.permute(0, 2, 1)
         mask = self.mlp_block(x).permute(0, 2, 1)
         mask = F.softmax(mask, dim=-1)
         x = torch.einsum('...si,...id->...sd', mask, x)

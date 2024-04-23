@@ -1,0 +1,29 @@
+policy_type: ACTPolicy
+extra_num_layers: 0
+extra_hidden_size: 512
+extra_embedding_size: 512
+
+encoder_n_embd: 512
+action_dim: 7
+
+gpt_encoder:
+    n_layer: 4
+    n_head: 4
+    n_embd: 512
+    block_size: 20
+
+gpt_decoder:
+    n_layer: 4
+    n_head: 4
+    n_embd: 512
+    output_dim: 7
+    block_size: 32
+
+lang_emb_dim: 512 # clip embedding size
+mpc_horizon: 16 # mpc horizon for execution
+
+defaults:
+    - data_augmentation@color_aug: batch_wise_img_color_jitter_group_aug.yaml
+    - data_augmentation@translation_aug: translation_aug.yaml
+    - image_encoder: act_resnet_encoder.yaml
+    - language_encoder: mlp_encoder.yaml

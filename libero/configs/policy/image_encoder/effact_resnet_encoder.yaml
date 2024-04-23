@@ -1,0 +1,8 @@
+network: EfficientACTResnetEncoder
+network_kwargs:
+    pretrained: false
+    freeze: false
+    remove_layer_num: 4
+    no_stride: false
+    language_fusion: 'none'
+    num_tok: 2
