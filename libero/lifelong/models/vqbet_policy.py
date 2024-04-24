@@ -174,7 +174,7 @@ class VQBet_Model(BasePolicy):
             extra_hidden_size=policy_cfg.extra_hidden_size,
             extra_embedding_size=policy_cfg.extra_embedding_size,
         )
-        self.encoders.append(self.extra_encoder)
+        # self.encoders.append(self.extra_encoder)
 
     def obs_encode(self, data):
         ### 1. encode image
@@ -232,4 +232,5 @@ class VQBet_Model(BasePolicy):
         bet_optimizers['optimizer1'].add_param_group({'params': self.lang_proj.parameters()})
         bet_optimizers['optimizer1'].add_param_group({'params': self.obs_proj.parameters()})
         bet_optimizers['optimizer1'].add_param_group({'params': self.encoders.parameters(), 'lr': lr*0.1})
+        bet_optimizers['optimizer1'].add_param_group({'params': self.extra_encoder.parameters()})
         return bet_optimizers

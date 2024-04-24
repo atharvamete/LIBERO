@@ -32,9 +32,7 @@ class Multitask(Sequential):
         total_params = 0
         for group in optimizer.param_groups:
             num_params = sum(p.numel() for p in group['params'])
-            print(f"Number of parameters in group: {num_params}")
             total_params += num_params
-        print(f"Total number of parameters: {total_params}")
         return total_params
 
     def start_task(self, task):
@@ -46,7 +44,7 @@ class Multitask(Sequential):
         self.optimizer = self.policy.configure_optimizers(**self.cfg.train.optimizer.kwargs)
         opt1 = self.print_num_parameters(self.optimizer['optimizer1'])
         opt2 = self.print_num_parameters(self.optimizer['optimizer2'])
-        print(f"Total number of parameters: {opt1 + opt2}")
+        print(f"Total number of parameters with optimizer: {opt1 + opt2}")
         self.scheduler1 = None
         self.scheduler2 = None
         if self.cfg.train.scheduler is not None:
@@ -190,7 +188,7 @@ class Multitask(Sequential):
                         flush=True,
                     )
 
-            if self.scheduler is not None and epoch > 0:
+            if self.scheduler2 is not None and epoch > 0:
                 if epoch < (self.cfg.train.n_epochs * 0.90):
                     self.scheduler1.step()
                     self.scheduler2.step()
