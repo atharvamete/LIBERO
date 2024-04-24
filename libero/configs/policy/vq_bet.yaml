@@ -1,0 +1,31 @@
+policy_type: VQBet_Model
+
+skill_block_size: 1
+action_dim: 7
+hidden_dim: 128
+num_layers: 1
+codebook_dim: 512
+codebook_size: 16
+num_codebooks: 2
+
+gpt_block_size: 30
+gpt_n_embd: 120
+gpt_n_layer: 6
+gpt_n_head: 6
+
+obs_window_size: 10
+offset_loss_multiplier: 100
+obs_emb_dim: 256 # from 512 to this value using MLP
+cat_obs_dim: 640 # 256 + 256 + 32 + 32 + 64 (front_cam, gripper_cam, gripper_state (2), gripper_pos (3), joint_states (7))
+extra_num_layers: 0
+extra_hidden_size: 32
+extra_embedding_size: 32 # joint_states emb size is twice this value
+
+lang_emb_dim: 512 # clip embedding size
+mpc_horizon: 16 # mpc horizon for execution
+
+defaults:
+    - data_augmentation@color_aug: batch_wise_img_color_jitter_group_aug.yaml
+    - data_augmentation@translation_aug: translation_aug.yaml
+    - image_encoder: resnet_encoder.yaml
+    - language_encoder: mlp_encoder.yaml

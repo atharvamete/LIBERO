@@ -1,6 +1,6 @@
 network: ResnetEncoder
 network_kwargs:
-    pretrained: false
+    pretrained: true
     freeze: false
     remove_layer_num: 4
     no_stride: false

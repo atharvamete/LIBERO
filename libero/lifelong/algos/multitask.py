@@ -21,26 +21,67 @@ class Multitask(Sequential):
     def __init__(self, n_tasks, cfg, **policy_kwargs):
         super().__init__(n_tasks=n_tasks, cfg=cfg, **policy_kwargs)
 
-    def log_wandb(self,loss, info, step):
-        offset_loss = info
-        wandb.log({"prior_loss": loss, "offset_loss": offset_loss,}, step=step)
+    def log_wandb(self, loss, info, step):
+        info.update({"loss": loss})
+        wandb.log(info, step=step)
     
     def log_wandb_eval(self, success_rates, mean_success_rate, step):
         wandb.log({"success_rates": success_rates, "mean_success_rate": mean_success_rate}, step=step)
     
-    def observe(self, data):
+    def print_num_parameters(self, optimizer):
+        total_params = 0
+        for group in optimizer.param_groups:
+            num_params = sum(p.numel() for p in group['params'])
+            print(f"Number of parameters in group: {num_params}")
+            total_params += num_params
+        print(f"Total number of parameters: {total_params}")
+        return total_params
+
+    def start_task(self, task):
+        """
+        What the algorithm does at the beginning of learning each lifelong task.
+        """
+        self.current_task = task
+        # initialize the optimizer and scheduler
+        self.optimizer = self.policy.configure_optimizers(**self.cfg.train.optimizer.kwargs)
+        opt1 = self.print_num_parameters(self.optimizer['optimizer1'])
+        opt2 = self.print_num_parameters(self.optimizer['optimizer2'])
+        print(f"Total number of parameters: {opt1 + opt2}")
+        self.scheduler1 = None
+        self.scheduler2 = None
+        if self.cfg.train.scheduler is not None:
+            self.scheduler1 = eval(self.cfg.train.scheduler.name)(
+                self.optimizer['optimizer1'],
+                T_max=self.cfg.train.n_epochs,
+                **self.cfg.train.scheduler.kwargs,
+            )
+            self.scheduler2 = eval(self.cfg.train.scheduler.name)(
+                self.optimizer['optimizer2'],
+                T_max=self.cfg.train.n_epochs,
+                **self.cfg.train.scheduler.kwargs,
+            )
+    
+    def observe(self, data, epoch):
         """
         How the algorithm learns on each data point.
         """
         data = self.map_tensor_to_device(data)
-        self.optimizer.zero_grad()
+        if epoch < (self.cfg.train.n_epochs * 0.90):
+            self.optimizer["optimizer1"].zero_grad()
+            self.optimizer["optimizer2"].zero_grad()
+        else:
+            self.optimizer["optimizer2"].zero_grad()
         loss, info = self.policy.compute_loss(data)
         (self.loss_scale * loss).backward()
         if self.cfg.train.grad_clip is not None:
             grad_norm = nn.utils.clip_grad_norm_(
                 self.policy.parameters(), self.cfg.train.grad_clip
             )
-        self.optimizer.step()
+        if epoch < (self.cfg.train.n_epochs * 0.90):
+            self.optimizer["optimizer1"].step()
+            self.optimizer["optimizer2"].step()
+        else:
+            self.optimizer["optimizer2"].step()
         return loss.item(), info
 
     def eval_observe(self, data):
@@ -87,7 +128,7 @@ class Multitask(Sequential):
                 self.policy.train()
                 training_loss = 0.0
                 for (idx, data) in tqdm(enumerate(train_dataloader)):
-                    loss, info = self.observe(data)
+                    loss, info = self.observe(data, epoch)
                     training_loss += loss
                     if self.cfg.use_wandb:
                         self.log_wandb(loss, info, steps)
@@ -150,7 +191,11 @@ class Multitask(Sequential):
                     )
 
             if self.scheduler is not None and epoch > 0:
-                self.scheduler.step()
+                if epoch < (self.cfg.train.n_epochs * 0.90):
+                    self.scheduler1.step()
+                    self.scheduler2.step()
+                else:
+                    self.scheduler2.step()
 
         # load the best policy if there is any
         if self.cfg.lifelong.eval_in_train:
