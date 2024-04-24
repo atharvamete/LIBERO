@@ -30,9 +30,12 @@ class SkillGPT_Model(BasePolicy):
         if cfg.pretrain_skillVAE_path is not None:
             self.skill_vae_policy.load_state_dict(torch_load_model(cfg.pretrain_skillVAE_path)[0])
         self.skill_vae_policy = self.skill_vae_policy.to(self.device)
-        self.skill_vae_policy.eval()
-        for param in self.skill_vae_policy.parameters():
-            param.requires_grad = False
+        if not cfg.tune_decoder:
+            self.skill_vae_policy.eval()
+            for param in self.skill_vae_policy.parameters():
+                param.requires_grad = False
+        else:
+            self.skill_vae_policy.train()
 
         offset_dim = self.act_dim*self.decoder_block_size
         skillgpt_config = SkillGPT_Config(policy_cfg.prior, offset_dim)
@@ -57,9 +60,8 @@ class SkillGPT_Model(BasePolicy):
 
     def forward(self, data):
         with torch.no_grad():
-            init_obs = self.skill_vae_policy.obs_encode(data)
             indices = self.skill_vae_policy.skill_vae.get_indices(data["actions"]).long()
-            # print(indices, 'training indices')
+            init_obs = self.skill_vae_policy.obs_encode(data)
         start_tokens = (torch.ones((data["actions"].shape[0], 1))*self.start_token).long().to(self.device)
         x = torch.cat([start_tokens, indices[:,:-1]], dim=1)
         targets = indices.clone()
@@ -72,7 +74,7 @@ class SkillGPT_Model(BasePolicy):
             probs = torch.softmax(logits, dim=-1)
             sampled_indices = torch.multinomial(probs.view(-1,logits.shape[-1]),1)
             sampled_indices = sampled_indices.view(-1,logits.shape[1])
-            pred_actions = self.skill_vae_policy.skill_vae.decode_actions(sampled_indices, init_obs)
+        pred_actions = self.skill_vae_policy.skill_vae.decode_actions(sampled_indices, init_obs)
         pred_actions_with_offset = pred_actions + offset
         return pred_actions_with_offset, prior_loss
 

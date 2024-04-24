@@ -66,7 +66,7 @@ def main(hydra_cfg):
     descriptions = []
     shape_meta = None
 
-    few_shot_demos_list = [f"demo_{i}" for i in cfg.data.few_shot_demos]
+    few_shot_demos_list = [f"demo_{i}" for i in cfg.data.few_shot_demos] if cfg.data.few_shot_demos is not None else None
 
     for i in range(n_manip_tasks):
         # currently we assume tasks from same benchmark have the same shape_meta
