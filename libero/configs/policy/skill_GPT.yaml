@@ -35,9 +35,9 @@ prior:
     block_size: 8 # since we have 8 z-tokens corresponding to 32 actions
     output_dim: 1000
     start_token: 1001
-    n_layer: 8
-    n_head: 8
-    n_embd: 512
+    n_layer: 6
+    n_head: 6
+    n_embd: 384
     beam_size: 5 # value of k for top k sampling
     temperature: 1.0 # temperature for sampling
 

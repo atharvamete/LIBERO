@@ -61,7 +61,7 @@ class SkillGPT_Model(BasePolicy):
     def forward(self, data):
         with torch.no_grad():
             indices = self.skill_vae_policy.skill_vae.get_indices(data["actions"]).long()
-            init_obs = self.skill_vae_policy.obs_encode(data)
+        init_obs = self.skill_vae_policy.obs_encode(data)
         start_tokens = (torch.ones((data["actions"].shape[0], 1))*self.start_token).long().to(self.device)
         x = torch.cat([start_tokens, indices[:,:-1]], dim=1)
         targets = indices.clone()

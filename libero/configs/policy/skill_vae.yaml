@@ -1,4 +1,4 @@
-policy_type: SkillGPT_Model
+policy_type: SkillVAE_Model
 extra_num_layers: 0
 extra_hidden_size: 32
 extra_embedding_size: 32 # joint_states emb size is twice this value
