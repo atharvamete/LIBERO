@@ -21,9 +21,9 @@ class Multitask(Sequential):
     def __init__(self, n_tasks, cfg, **policy_kwargs):
         super().__init__(n_tasks=n_tasks, cfg=cfg, **policy_kwargs)
 
-    def log_wandb(self,loss, info, step):
-        offset_loss = info
-        wandb.log({"prior_loss": loss, "offset_loss": offset_loss,}, step=step)
+    def log_wandb(self, loss, info, step):
+        info.update({"loss": loss})
+        wandb.log(info, step=step)
     
     def log_wandb_eval(self, success_rates, mean_success_rate, step):
         wandb.log({"success_rates": success_rates, "mean_success_rate": mean_success_rate}, step=step)
@@ -41,6 +41,7 @@ class Multitask(Sequential):
                 self.policy.parameters(), self.cfg.train.grad_clip
             )
         self.optimizer.step()
+        self.policy.diff_model.ema_update()
         return loss.item(), info
 
     def eval_observe(self, data):
