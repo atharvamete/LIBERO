@@ -2,14 +2,14 @@ policy_type: VQBet_Model
 
 skill_block_size: 1
 action_dim: 7
-hidden_dim: 1024
-num_layers: 4
+hidden_dim: 128
+num_layers: 1
 codebook_dim: 512
 codebook_size: 16
 num_codebooks: 2
 
 gpt_block_size: 30
-gpt_n_embd: 384
+gpt_n_embd: 120
 gpt_n_layer: 6
 gpt_n_head: 6
 
@@ -22,7 +22,7 @@ extra_hidden_size: 32
 extra_embedding_size: 32 # joint_states emb size is twice this value
 
 lang_emb_dim: 512 # clip embedding size
-mpc_horizon: 16 # mpc horizon for execution
+mpc_horizon: 1 # mpc horizon for execution
 
 defaults:
     - data_augmentation@color_aug: batch_wise_img_color_jitter_group_aug.yaml

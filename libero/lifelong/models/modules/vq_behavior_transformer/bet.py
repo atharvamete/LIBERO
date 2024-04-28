@@ -178,7 +178,7 @@ class BehaviorTransformer(nn.Module):
             obs_seq = torch.cat(
                 (
                     torch.tile(
-                        obs_seq[:, 0, :],
+                        obs_seq[:, 0, :].unsqueeze(1),
                         (1, self.obs_window_size - obs_seq.shape[1], 1),
                     ),
                     obs_seq,

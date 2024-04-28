@@ -11,6 +11,7 @@ from libero.lifelong.models.modules.vq_behavior_transformer import *
 
 from libero.lifelong.utils import torch_load_model
 from collections import deque
+import einops
 
 class MLP_Proj(nn.Module):
     """
@@ -219,8 +220,9 @@ class VQBet_Model(BasePolicy):
     def sample_actions(self, data):
         data = self.preprocess_input(data, train_mode=False)
         obs = self.obs_proj(self.obs_encode(data))[:,:self.obs_window_size,:]
-        goal = self.lang_proj(data["task_emb"])
+        goal = self.lang_proj(data["task_emb"]).unsqueeze(1)
         predicted_act, _, _ = self.Bet(obs, goal, None)
+        predicted_act = einops.rearrange(predicted_act, "(N T) W A -> N T W A", T=self.obs_window_size)[:, -1, :, :]
         predicted_act = predicted_act.permute(1,0,2)
         return predicted_act.detach().cpu().numpy()
 
