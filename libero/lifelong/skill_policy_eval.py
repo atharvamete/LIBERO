@@ -36,7 +36,7 @@ from libero.lifelong.utils import (
 )
 
 
-@hydra.main(config_path="../configs", config_name="eval", version_base=None)
+@hydra.main(config_path="../configs", config_name="eval_diff", version_base=None)
 def main(hydra_cfg):
     # preprocessing
     yaml_config = OmegaConf.to_yaml(hydra_cfg)

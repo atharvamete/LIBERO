@@ -13,18 +13,15 @@ defaults:
 data:
   seq_len: 32
   obs_seq_len: 1
-  few_shot_demos: [1, 5, 10, 20, 45] # demo numbers for few-shot learning, use null for using all demos
 eval:
-  eval: false
-  eval_every: 10
-train:
-  batch_size: 256
+  eval: true
+  n_eval: 40
+  num_procs: 5
+  batch_size: 128
   num_workers: 6
-  n_epochs: 100
-policy:
-  skill_block_size: 32
 
-exp_name: "m4_64_f4_k3s4_tt_n6d384_5shot_decobs" # n6d384: GPT model num_heads=num_layers=6, d_model=384, 5-shot, decoder not frozen
+exp_name: "eval40_lib10_diff_ddpm100_100_l3d256" #
+tune_decoder: false
 seed: 10000
 use_wandb: false
 wandb_project: "diff-skill-libero"
@@ -32,10 +29,9 @@ folder: null # use default path
 bddl_folder: null # use default path
 init_states_folder: null # use default path
 load_previous_model: false
-pretrain_skillVAE_path: null
 device: "cuda"
 task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
-pretrain_model_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4_64_f4_k3s4_tt_n6d384/run_001/multitask_model_ep100.pth"
+pretrain_model_path: "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/experiments_clip/LIBERO_10/Multitask/Diffusion_Policy/ResnetEncoder/diff_ddpm100_l3d256/run_001/multitask_model_ep100.pth"
 benchmark_name: "LIBERO_10"

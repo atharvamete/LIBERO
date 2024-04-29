@@ -55,7 +55,7 @@ class Diffusion_Model(nn.Module):
         return loss
 
     def get_action(self, cond):
-        nets = self.ema.averaged_model
+        nets = self.net
         noisy_action = torch.randn(
             (cond.shape[0], self.cfg.skill_block_size, self.cfg.action_dim), device=self.device)
         naction = noisy_action
