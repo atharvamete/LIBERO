@@ -32,6 +32,7 @@ class SkillVAE(nn.Module):
         encoder_layer = nn.TransformerEncoderLayer(d_model=cfg.encoder_dim, nhead=cfg.encoder_heads, dim_feedforward=4*cfg.encoder_dim, dropout=cfg.attn_pdrop, activation='gelu', batch_first=True)
         self.encoder =  nn.TransformerEncoder(encoder_layer, num_layers=cfg.encoder_layers)
         self.add_positional_emb = Summer(PositionalEncoding1D(cfg.encoder_dim))
+        self.fixed_positional_emb = PositionalEncoding1D(cfg.decoder_dim)
 
         decoder_input_dim = cfg.obs_emb_dim if cfg.cross_z else latent_dim
         gpt_block_size = cfg.skill_block_size if cfg.use_m4 else cfg.skill_block_size//(2**(cfg.strides.count(2)))
@@ -78,7 +79,8 @@ class SkillVAE(nn.Module):
                 x = init_obs.repeat(1, self.cfg.skill_block_size, 1)
                 cross_cond = self.latent_decoder_proj(codes)
             elif self.cfg.use_m4==1:
-                x = torch.ones(codes.shape[0], self.cfg.skill_block_size, self.cfg.decoder_dim).to(codes.device)
+                # x = torch.ones(codes.shape[0], self.cfg.skill_block_size, self.cfg.decoder_dim).to(codes.device)
+                x = self.fixed_positional_emb(torch.zeros((codes.shape[0], self.cfg.skill_block_size, self.cfg.decoder_dim), dtype=codes.dtype, device=codes.device))
                 codes = self.latent_decoder_proj(codes)
                 cross_cond = torch.cat([init_obs,codes], dim=1)
             else:

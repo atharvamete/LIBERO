@@ -86,7 +86,7 @@ class SkillGPT_Model(BasePolicy):
         pred, prior_loss = self.forward(data)
         loss = self.loss_fn(pred, data["actions"])
         total_loss = prior_loss + self.offset_loss_scale*loss
-        return total_loss, loss
+        return total_loss, {'offset_loss': loss}
     
     def get_action(self, data):
         self.eval()
@@ -144,3 +144,27 @@ class SkillGPT_Model(BasePolicy):
 
     def reset(self):
         self.action_queue = deque(maxlen=self.mpc_horizon)
+    
+    def configure_optimizer(self, lr, betas, weight_decay):
+        learning_rate = lr
+        # Get the optimizer configured for the decoder
+        decoder_optimizer = self.skill_vae_policy.configure_optimizers(weight_decay, learning_rate, betas)
+        # Get the optimizer configured for GPT
+        gpt_optimizer = self.skill_gpt.configure_optimizers(weight_decay, learning_rate, betas)
+        # Combine the two optimizers
+        combined_param_groups = decoder_optimizer.param_groups + gpt_optimizer.param_groups
+        optimizer = torch.optim.AdamW(combined_param_groups)
+        # add remaining parameters to optimizer
+        optimizer.add_param_group({'params': self.lang_proj.parameters(), 'weight_decay': weight_decay, 'lr': learning_rate, 'betas': betas})
+        optimizer.add_param_group({'params': self.obs_proj.parameters(), 'weight_decay': weight_decay, 'lr': learning_rate, 'betas': betas})
+        # all_params = [p for p in self.parameters()]
+        # decoder_params = [p for p in self.skill_vae_policy.parameters()]
+        # gpt_params = [p for p in self.skill_gpt.parameters()]
+        # other_params = [p for p in all_params if p not in decoder_params and p not in gpt_params]
+        # optimizer.add_param_group({
+        #     'params': other_params,
+        #     'weight_decay': weight_decay,
+        #     'lr': learning_rate,
+        #     'betas': betas
+        # })
+        return optimizer

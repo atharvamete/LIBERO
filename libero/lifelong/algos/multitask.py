@@ -27,6 +27,23 @@ class Multitask(Sequential):
     
     def log_wandb_eval(self, success_rates, mean_success_rate, step):
         wandb.log({"success_rates": success_rates, "mean_success_rate": mean_success_rate}, step=step)
+
+    def start_task(self, task):
+        """
+        What the algorithm does at the beginning of learning each lifelong task.
+        """
+        self.current_task = task
+        # initialize the optimizer and scheduler
+        self.optimizer = self.policy.configure_optimizers(**self.cfg.train.optimizer.kwargs)
+        opt1 = self.print_num_parameters(self.optimizer)
+        print(f"Total number of parameters with optimizer: {opt1}")
+        self.scheduler = None
+        if self.cfg.train.scheduler is not None:
+            self.scheduler = eval(self.cfg.train.scheduler.name)(
+                self.optimizer,
+                T_max=self.cfg.train.n_epochs,
+                **self.cfg.train.scheduler.kwargs,
+            )
     
     def observe(self, data):
         """

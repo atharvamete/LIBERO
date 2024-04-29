@@ -11,7 +11,7 @@ defaults:
 
 # change defaults
 data:
-  seq_len: 32
+  seq_len: 8
   obs_seq_len: 1
 eval:
   eval: false
@@ -20,7 +20,7 @@ train:
   num_workers: 6
   n_epochs: 100
 policy:
-  skill_block_size: 32
+  skill_block_size: 8
   use_m4: 1
   cross_z: true
   vq_type: "fsq"
@@ -28,7 +28,7 @@ policy:
   use_causal_decoder: true
   strides: [2,2,1]
 
-exp_name: "m4_32_f4_k3s4_tt" # model_type: m4, seq_len: 32, fsq_levels: 4, num_kernels: 3, stride_factor: 4, encoder-decoder_causality: true-true
+exp_name: "m4op_8_f4_k3s4_tt" # model_type: m4, seq_len: 32, fsq_levels: 4, num_kernels: 3, stride_factor: 4, encoder-decoder_causality: true-true
 seed: 10000
 use_wandb: true
 wandb_project: "diff-skill-libero"
@@ -41,4 +41,4 @@ task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: true
 pretrain_model_path: ""
-benchmark_name: "LIBERO_10" # benchmark name LIBERO_10 or LIBERO_90
+benchmark_name: "LIBERO_90" # benchmark name LIBERO_10 or LIBERO_90

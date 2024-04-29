@@ -425,7 +425,7 @@ class GPT(nn.Module):
         elif isinstance(module, GPT):
             torch.nn.init.normal_(module.pos_emb, mean=0.0, std=0.02)
 
-    def configure_optimizers(self, train_config):
+    def configure_optimizers(self, weight_decay, learning_rate, betas):
         """
         This long function is unfortunately doing something very simple and is being very defensive:
         We are separating out all parameters of the model into two buckets: those that will experience
@@ -471,7 +471,7 @@ class GPT(nn.Module):
         optim_groups = [
             {
                 "params": [param_dict[pn] for pn in sorted(list(decay))],
-                "weight_decay": train_config.weight_decay,
+                "weight_decay": weight_decay,
             },
             {
                 "params": [param_dict[pn] for pn in sorted(list(no_decay))],
@@ -479,7 +479,7 @@ class GPT(nn.Module):
             },
         ]
         optimizer = torch.optim.AdamW(
-            optim_groups, lr=train_config.learning_rate, betas=train_config.betas
+            optim_groups, lr=learning_rate, betas=betas
         )
         return optimizer
 
@@ -490,12 +490,12 @@ class GPT(nn.Module):
             b, t, dim = idx.size()
         assert t <= self.block_size, "Cannot forward, model block size is exhausted."
         # forward the GPT model
-        token_embeddings = self.tok_emb(idx)  # each index maps to a (learnable) vector, B * T * n_emb
-        position_embeddings = self.pos_emb[
-            :, :t, :
-        ]  # each position maps to a (learnable) vector
-        x = self.drop(token_embeddings + position_embeddings)
-        x,_ = self.blocks((x, context))
+        # token_embeddings = self.tok_emb(idx)  # each index maps to a (learnable) vector, B * T * n_emb
+        # position_embeddings = self.pos_emb[
+        #     :, :t, :
+        # ]  # each position maps to a (learnable) vector
+        # x = self.drop(token_embeddings + position_embeddings)
+        x,_ = self.blocks((idx, context))
         x = self.ln_f(x)
         return x
 
@@ -570,7 +570,7 @@ class SkillGPT(nn.Module):
         elif isinstance(module, GPT):
             torch.nn.init.normal_(module.pos_emb, mean=0.0, std=0.02)
 
-    def configure_optimizers(self, train_config):
+    def configure_optimizers(self, weight_decay, learning_rate, betas):
         """
         This long function is unfortunately doing something very simple and is being very defensive:
         We are separating out all parameters of the model into two buckets: those that will experience
@@ -617,7 +617,7 @@ class SkillGPT(nn.Module):
         optim_groups = [
             {
                 "params": [param_dict[pn] for pn in sorted(list(decay))],
-                "weight_decay": train_config.weight_decay,
+                "weight_decay": weight_decay,
             },
             {
                 "params": [param_dict[pn] for pn in sorted(list(no_decay))],
@@ -625,7 +625,7 @@ class SkillGPT(nn.Module):
             },
         ]
         optimizer = torch.optim.AdamW(
-            optim_groups, lr=train_config.learning_rate, betas=train_config.betas
+            optim_groups, lr=learning_rate, betas=betas
         )
         return optimizer
 

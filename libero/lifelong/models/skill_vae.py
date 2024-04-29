@@ -145,7 +145,7 @@ class SkillVAE_Model(BasePolicy):
     def forward(self, data):
         init_obs = self.obs_encode(data)
         pred, pp, pp_sample, commitment_loss = self.skill_vae(data["actions"], init_obs)
-        info = (pp, pp_sample, commitment_loss)
+        info = {'pp': pp, 'pp_sample': pp_sample, 'commitment_loss': commitment_loss}
         return pred, info
 
     def loss_fn(self, pred, target):
@@ -156,5 +156,24 @@ class SkillVAE_Model(BasePolicy):
         pred, info = self.forward(data)
         loss = self.loss_fn(pred, data["actions"])
         if self.using_vq:
-            loss += info[-1][0]
+            loss += info['commitment_loss'][0]
         return loss, info
+
+    def configure_optimizers(self, lr, betas, weight_decay):
+        learning_rate = lr
+        # Get the optimizer configured for the decoder
+        optimizer = self.skill_vae.decoder.configure_optimizers(weight_decay, learning_rate, betas)
+        # Get all parameters of the current module
+        all_params = {id(p): p for p in self.parameters()}
+        # Get the parameters of the decoder
+        decoder_params = {id(p): p for p in self.skill_vae.decoder.parameters()}
+        # Exclude the parameters of the decoder from all_params
+        other_params = [p for p_id, p in all_params.items() if p_id not in decoder_params]
+        # Add other_params to the optimizer as a separate group
+        optimizer.add_param_group({
+            'params': other_params,
+            'weight_decay': weight_decay,
+            'lr': learning_rate,
+            'betas': betas
+        })
+        return optimizer

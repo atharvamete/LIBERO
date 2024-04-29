@@ -22,12 +22,32 @@ class Multitask_Pretrain(Sequential):
         super().__init__(n_tasks=n_tasks, cfg=cfg, **policy_kwargs)
 
     def log_wandb(self,loss, info, step):
-        pp, pp_sample, commitment_loss = info
-        if self.cfg.policy.vq_type == 'vq':
-            loss = loss - commitment_loss
-            wandb.log({"loss": loss, "pp": pp, "pp_sample": pp_sample, "commitment_loss": commitment_loss}, step=step)
-        else:
-            wandb.log({"loss": loss, "pp": pp, "pp_sample": pp_sample,}, step=step)
+        info.update({"loss": loss})
+        wandb.log(info, step=step)
+
+    def print_num_parameters(self, optimizer):
+        total_params = 0
+        for group in optimizer.param_groups:
+            num_params = sum(p.numel() for p in group['params'])
+            total_params += num_params
+        return total_params
+
+    def start_task(self, task):
+        """
+        What the algorithm does at the beginning of learning each lifelong task.
+        """
+        self.current_task = task
+        # initialize the optimizer and scheduler
+        self.optimizer = self.policy.configure_optimizers(**self.cfg.train.optimizer.kwargs)
+        opt1 = self.print_num_parameters(self.optimizer)
+        print(f"Total number of parameters with optimizer: {opt1}")
+        self.scheduler = None
+        if self.cfg.train.scheduler is not None:
+            self.scheduler = eval(self.cfg.train.scheduler.name)(
+                self.optimizer,
+                T_max=self.cfg.train.n_epochs,
+                **self.cfg.train.scheduler.kwargs,
+            )
 
     def observe(self, data):
         """
