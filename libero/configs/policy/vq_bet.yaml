@@ -5,7 +5,7 @@ action_dim: 7
 hidden_dim: 128
 num_layers: 1
 codebook_dim: 512
-codebook_size: 16
+codebook_size: 32
 num_codebooks: 2
 
 gpt_block_size: 30
