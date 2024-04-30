@@ -77,6 +77,7 @@ def main(hydra_cfg):
                 initialize_obs_utils=(i == 0),
                 seq_len=cfg.data.seq_len,
                 obs_seq_len=cfg.data.obs_seq_len,
+                use_padding=cfg.data.use_padding,
             )
         except Exception as e:
             print(

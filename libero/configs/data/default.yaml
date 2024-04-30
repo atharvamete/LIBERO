@@ -10,6 +10,8 @@ use_gripper: true
 use_joint: true
 use_ee: true
 
+use_padding: true
+
 max_word_len: 25
 
 state_dim: null
