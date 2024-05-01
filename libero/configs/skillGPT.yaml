@@ -15,6 +15,7 @@ data:
   obs_seq_len: 1
 eval:
   eval: false
+  eval_every: 20
 lifelong:
   eval_in_train: false
 train:
@@ -31,8 +32,8 @@ policy:
   kernel_sizes: [5,3,3]
   strides: [2,2,1]
 
-pretrain_skillVAE_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_10/Multitask_Pretrain/SkillVAE_Model/ResnetEncoder/m4_32_f4_k3s4_tt/run_001/multitask_model_ep100.pth"
-exp_name: "m4_32_f4_k3s4_tt_n6d384" # n6d384: GPT model num_heads=num_layers=6, d_model=384
+pretrain_skillVAE_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask_Pretrain/SkillVAE_Model/ResnetEncoder/m4op_32_f4_k3s4_tt/run_001/multitask_model_ep100.pth"
+exp_name: "m4op_32_f4_k3s4_tt_n6d384_off0" # n6d384: GPT model num_heads=num_layers=6, d_model=384
 tune_decoder: false
 seed: 10000
 use_wandb: true
@@ -46,4 +47,4 @@ task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
 pretrain_model_path: ""
-benchmark_name: "LIBERO_10"
+benchmark_name: "LIBERO_90"

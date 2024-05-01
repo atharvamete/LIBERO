@@ -159,7 +159,7 @@ def main(hydra_cfg):
     algo = safe_device(get_algo_class(cfg.lifelong.algo)(n_tasks, cfg), cfg.device)
     if cfg.pretrain_model_path != "":  # load a pretrained model if there is any
         try:
-            algo.policy.load_state_dict(torch_load_model(cfg.pretrain_model_path)[0])
+            algo.policy.load_state_dict(torch_load_model(cfg.pretrain_model_path)[0], strict=False)
         except:
             print(
                 f"[error] cannot load pretrained model from {cfg.pretrain_model_path}"

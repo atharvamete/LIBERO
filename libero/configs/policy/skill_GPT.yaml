@@ -41,7 +41,7 @@ prior:
     beam_size: 5 # value of k for top k sampling
     temperature: 1.0 # temperature for sampling
 
-offset_loss_scale: 1
+offset_loss_scale: 0.0
 lang_emb_dim: 512 # clip embedding size
 mpc_horizon: 16 # mpc horizon for execution
 

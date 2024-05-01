@@ -65,7 +65,7 @@ class SkillVAE(nn.Module):
         elif self.cfg.vq_type == 'fsq':
             codes, indices = self.vq(z)
             commitment_loss = torch.tensor(1.).to(z.device)
-            pp = torch.tensor(torch.unique(indices).shape[0] / self.vq.n_codes).to(z.device)
+            pp = torch.tensor(torch.unique(indices).shape[0] / self.vq.codebook_size).to(z.device)
         else:
             raise NotImplementedError(f"VQ type {self.cfg.vq_type} not implemented")
         pp_sample = torch.tensor(np.mean([len(torch.unique(index_seq)) for index_seq in indices])/z.shape[1]).to(z.device)

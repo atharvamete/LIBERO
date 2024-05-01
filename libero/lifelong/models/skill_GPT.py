@@ -28,7 +28,7 @@ class SkillGPT_Model(BasePolicy):
         
         self.skill_vae_policy = SkillVAE_Model(cfg, shape_meta)
         if cfg.pretrain_skillVAE_path is not None:
-            self.skill_vae_policy.load_state_dict(torch_load_model(cfg.pretrain_skillVAE_path)[0])
+            self.skill_vae_policy.load_state_dict(torch_load_model(cfg.pretrain_skillVAE_path)[0], strict=False)
         self.skill_vae_policy = self.skill_vae_policy.to(self.device)
         if not cfg.tune_decoder:
             self.skill_vae_policy.eval()
@@ -145,10 +145,10 @@ class SkillGPT_Model(BasePolicy):
     def reset(self):
         self.action_queue = deque(maxlen=self.mpc_horizon)
     
-    def configure_optimizer(self, lr, betas, weight_decay):
+    def configure_optimizers(self, lr, betas, weight_decay):
         learning_rate = lr
         # Get the optimizer configured for the decoder
-        decoder_optimizer = self.skill_vae_policy.configure_optimizers(weight_decay, learning_rate, betas)
+        decoder_optimizer = self.skill_vae_policy.configure_optimizers(learning_rate, betas, weight_decay)
         # Get the optimizer configured for GPT
         gpt_optimizer = self.skill_gpt.configure_optimizers(weight_decay, learning_rate, betas)
         # Combine the two optimizers

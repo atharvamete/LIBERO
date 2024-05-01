@@ -22,11 +22,18 @@ class Multitask(Sequential):
         super().__init__(n_tasks=n_tasks, cfg=cfg, **policy_kwargs)
 
     def log_wandb(self,loss, info, step):
-        offset_loss = info
-        wandb.log({"prior_loss": loss, "offset_loss": offset_loss,}, step=step)
+        info.update({"prior_loss": loss})
+        wandb.log(info, step=step)
     
     def log_wandb_eval(self, success_rates, mean_success_rate, step):
         wandb.log({"success_rates": success_rates, "mean_success_rate": mean_success_rate}, step=step)
+
+    def print_num_parameters(self, optimizer):
+        total_params = 0
+        for group in optimizer.param_groups:
+            num_params = sum(p.numel() for p in group['params'])
+            total_params += num_params
+        return total_params
 
     def start_task(self, task):
         """
