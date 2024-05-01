@@ -9,41 +9,40 @@
 5. Other dependencies like torch, torchvision, transformers, etc
 6. Libero specific dependencies are in the `requirements.txt` file.
 
-## Model Files
-Model files are in the `libero/lifelong/models` directory. Description:
-1. `skill_vae.py`: stage 1 policy file, uses base_policy class, imports stage 1 model and observation encoder.
-2. `modules/skill_vae_modules.py`: SkillVAE model - stage 1.
-3. `skill_GPT.py`: stage 2 policy file, uses base_policy class, imports stage 1 model and stage 2 GPT model both.
-4. `modules/skill_utils.py`: contains stage 2 GPT model and other stage 1 modules.
-5. `modules/rgb_modules.py`: contains visual observation encoder.
+## Action Chunking Transformer
+ACT Model files are in the `libero/lifelong/models` directory. Description:
+1. [`act.py`](libero/lifelong/models/act.py): ACT policy file, uses base_policy class, imports submodules model and observation encoder.
+2. [`modules/act_utils.py`](libero/lifelong/models/modules/act_utils.py): contains GPT model and other modules.
+3. [`modules/rgb_modules.py`](libero/lifelong/models/modules/rgb_modules.py): contains visual observation encoder.
+    - ACTResnetEncoder: Original Resnet encoder for visual observations.
+    - EfficientACTResnetEncoder: Efficient Resnet encoder with token-learner.
+4. [`quantize_utils.py`](libero/lifelong/quantize_utils.py): Contains quantization functions.
 
 ## Config Files
 Config files are in the `libero/configs` directory. Description:
-1. `pretrain.yaml`: stage 1 training.
-2. `skillGPT.yaml`: stage 2 training.
-3. `few_shot.yaml`: few-shot training on libero-10.
+1. [`ACT.yaml`](libero/configs/ACT.yaml): ACT main config for training.
+2. [`ACT_eval.yaml`](libero/configs/ACT_eval.yaml): ACT main config for evals. 
+
 All of these files use default files in the `libero/configs` directory.  
 Following are model specific config files:
-1. `policy/skill_vae.yaml`: stage 1 model.
-2. `policy/skill_GPT.yaml`: stage 2 model.
+1. [`policy/act_policy.yaml`](libero/configs/policy/act_policy.yaml): ACT model config.
+2. [`policy/image_encoder/effact_resnet_encoder.yaml`](libero/configs/policy/image_encoder/effact_resnet_encoder.yaml): Token Learner config.
 
 Read comments in the config files for more details.  
 
 ## Training Scripts
 These are libero specific scripts that loads the model and data and environment (for evals) and trains the model.  
 Main scripts for training are in the `libero/lifelong` directory. The main scripts are:
-1. `pretrain.py`: Pretrain the SkillVAE model.
-2. `skill_policy.py`: Train the skill policy.
-These scripts load `algo/multitask.py` algo that loads multitask data and trains the model. (libero specific)
+1. [`act_policy.py`](libero/lifelong/act_policy.py): Train the ACT model.
+2. [`act_policy_eval.py`](libero/lifelong/act_policy_eval.py): Evaluation of the ACT policy.
+These scripts load [`algo/multitask.py`](libero/lifelong/algos/multitask.py) algo that loads multitask data and trains the model. (libero specific)
 
-1. Command to train stage 1:  
-```export CUDA_VISIBLE_DEVICES=0 && export MUJOCO_EGL_DEVICE_ID=0 && python libero/lifelong/pretrain.py```
-2. Command to train stage 2:
-```export CUDA_VISIBLE_DEVICES=0 && export MUJOCO_EGL_DEVICE_ID=0 && python libero/lifelong/skill_policy.py```
-3. Command to finetune:
-```export CUDA_VISIBLE_DEVICES=0 && export MUJOCO_EGL_DEVICE_ID=0 && python libero/lifelong/few_shot.py```
-4. Command to evaluate:
-```export CUDA_VISIBLE_DEVICES=0 && export MUJOCO_EGL_DEVICE_ID=0 && python libero/lifelong/skill_policy_eval.py```
+1. Command to train ACT model:
+```export CUDA_VISIBLE_DEVICES=0 && export MUJOCO_EGL_DEVICE_ID=0 && python libero/lifelong/act_policy.py```
+2. Command to evaluate:
+```export CUDA_VISIBLE_DEVICES=0 && export MUJOCO_EGL_DEVICE_ID=0 && python libero/lifelong/act_policy_eval.py```
+
+You can change the `num_tok` parameter in the [`effact_resnet_encoder.yaml`](libero/configs/policy/image_encoder/effact_resnet_encoder.yaml) config file to change the number of tokens to learn with Token Learner.
 
 ## Running this on PACE
 

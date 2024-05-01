@@ -5,4 +5,4 @@ network_kwargs:
     remove_layer_num: 4
     no_stride: false
     language_fusion: 'none'
-    num_tok: 2
+    num_tok: 2 # number of tokens to reduce to
