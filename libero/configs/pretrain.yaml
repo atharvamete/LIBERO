@@ -13,15 +13,16 @@ defaults:
 data:
   seq_len: 96
   obs_seq_len: 1
-  use_padding: false
+  use_padding: true
 eval:
   eval: false
+  eval_every: 50
 train:
-  batch_size: 512
+  batch_size: 1024
   num_workers: 6
-  n_epochs: 200
+  n_epochs: 100
 
-exp_name: "codec_rvq_1000" # model_type: m4, seq_len: 32, fsq_levels: 4, num_kernels: 3, stride_factor: 4, encoder-decoder_causality: true-true
+exp_name: "codec_fq_16" # model_type: m4, seq_len: 32, fsq_levels: 4, num_kernels: 3, stride_factor: 4, encoder-decoder_causality: true-true
 seed: 10000
 use_wandb: false
 wandb_project: "diff-skill-libero"
@@ -34,4 +35,4 @@ task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: true
 pretrain_model_path: ""
-benchmark_name: "LIBERO_10" # benchmark name LIBERO_10 or LIBERO_90
+benchmark_name: "LIBERO_90" # benchmark name LIBERO_10 or LIBERO_90

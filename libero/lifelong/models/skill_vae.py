@@ -30,12 +30,13 @@ class SkillVAE_Model(BasePolicy):
         codes, indices, aux_loss = self.quantizer(out)
         out = self.decoder(codes)
         pp = torch.tensor(torch.unique(indices).shape[0] / self.quantizer.total_codes).to(out.device)
-        return out, {'aux_loss':aux_loss, 'pp':pp}
+        return out, {'aux_loss':aux_loss.sum() , 'pp':pp}
 
     def compute_loss(self, data):
         pred, info = self.forward(data)
         recon_loss = self.loss(pred, data['actions'])
         total_loss = recon_loss + info['aux_loss']
+        # print(f"recon_loss: {recon_loss}, aux_loss: {info['aux_loss']}, total_loss: {total_loss}, pp: {info['pp']}")
         return total_loss, info
 
     def get_indices(self, actions):

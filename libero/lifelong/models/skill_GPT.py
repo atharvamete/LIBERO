@@ -9,7 +9,6 @@ from libero.lifelong.models.base_policy import BasePolicy
 from libero.lifelong.models.skill_vae import SkillVAE_Model
 from libero.lifelong.models.modules.skill_vae_modules import *
 from libero.lifelong.models.modules.skill_utils import SkillGPT_Config, SkillGPT, MLP_Proj, beam_search, top_k_sampling
-from libero.lifelong.models.skill_vae import ExtraModalityTokens
 from libero.lifelong.utils import torch_load_model
 from collections import deque
 

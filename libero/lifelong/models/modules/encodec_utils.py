@@ -28,7 +28,7 @@ class Quantizer(nn.Module):
     def forward(self, x):
         out = self.quantizer(x)
         if len(out) == 2:
-            out = out + (None,)
+            out = out + (torch.tensor([0.0]).to(x.device),)
         return out
 
 def apply_layer_norm(x, layer_norm):
@@ -48,11 +48,11 @@ class ResidualBlock(nn.Module):
 
     def forward(self, x):
         out = self.conv1(x)
-        out = self.elu(out)
         out = apply_layer_norm(out, self.ln1)
-        out = self.conv2(out)
         out = self.elu(out)
+        out = self.conv2(out)
         out = apply_layer_norm(out, self.ln2)
+        out = self.elu(out)
         return out + x
 
 class Encoder(nn.Module):
@@ -62,6 +62,7 @@ class Encoder(nn.Module):
         final_channels = channels*2**(len(strides))
         self.conv_in = nn.Conv1d(in_channels, channels, kernel_size=kernels[0], stride=1, padding=padding, bias=bias)
         self.lstm = nn.LSTM(input_size=final_channels, hidden_size=final_channels, num_layers=2, batch_first=True)
+        self.lstm.flatten_parameters()
         self.conv_out = nn.Conv1d(final_channels, codebook_dim, kernel_size=kernels[0], stride=1, padding=padding, bias=bias)
         self.elu = nn.ELU()
         self.ln1 = nn.LayerNorm(channels)
@@ -73,13 +74,14 @@ class Encoder(nn.Module):
             kernel_size = kernels[1]
             self.res_blocks.append(ResidualBlock(in_channels, in_channels, kernel_size, bias=bias))
             self.res_blocks.append(nn.Conv1d(in_channels, channels, kernel_size=3, stride=strides[i], padding=1, bias=bias))
-            self.res_blocks.append(nn.ELU())
             self.res_blocks.append(nn.LayerNorm(channels))
+            self.res_blocks.append(nn.ELU())
     
     def forward(self, x):
+        x = x.transpose(1,2)
         out = self.conv_in(x)
-        out = self.elu(out)
         out = apply_layer_norm(out, self.ln1)
+        out = self.elu(out)
         for layer in self.res_blocks:
             if isinstance(layer, nn.LayerNorm):
                 out = apply_layer_norm(out, layer)
@@ -89,8 +91,9 @@ class Encoder(nn.Module):
         out, _ = self.lstm(out)
         out = out.transpose(1,2)
         out = self.conv_out(out)
-        out = self.elu(out)
         out = apply_layer_norm(out, self.ln2)
+        out = self.elu(out)
+        out = out.transpose(1,2)
         return out
 
 class Decoder(nn.Module):
@@ -100,6 +103,7 @@ class Decoder(nn.Module):
         final_channels = channels*2**(len(strides))
         self.conv_in = nn.Conv1d(codebook_dim, final_channels, kernel_size=kernels[0], stride=1, padding=padding, bias=bias)
         self.lstm = nn.LSTM(input_size=final_channels, hidden_size=final_channels, num_layers=2, batch_first=True)
+        self.lstm.flatten_parameters()
         self.conv_out = nn.Conv1d(channels, out_channels, kernel_size=kernels[0], stride=1, padding=padding, bias=bias)
         self.elu = nn.ELU()
         self.ln1 = nn.LayerNorm(final_channels)
@@ -110,14 +114,15 @@ class Decoder(nn.Module):
             final_channels = final_channels//2
             kernel_size = kernels[1]
             self.res_blocks.append(nn.ConvTranspose1d(in_channels, final_channels, kernel_size=3, stride=strides[::-1][i], padding=1, output_padding=strides[::-1][i]-1, bias=bias))
-            self.res_blocks.append(nn.ELU())
             self.res_blocks.append(nn.LayerNorm(final_channels))
+            self.res_blocks.append(nn.ELU())
             self.res_blocks.append(ResidualBlock(final_channels, final_channels, kernel_size, bias=bias))
     
     def forward(self, x):
+        x = x.transpose(1,2)
         out = self.conv_in(x)
-        out = self.elu(out)
         out = apply_layer_norm(out, self.ln1)
+        out = self.elu(out)
         out = out.transpose(1,2)
         out, _ = self.lstm(out)
         out = out.transpose(1,2)
@@ -127,8 +132,9 @@ class Decoder(nn.Module):
             else:
                 out = layer(out)
         out = self.conv_out(out)
-        out = self.elu(out)
-        out = apply_layer_norm(out, self.ln2)
+        # out = apply_layer_norm(out, self.ln2)
+        out = out.transpose(1,2)
+        out = torch.tanh(out)
         return out
 
 

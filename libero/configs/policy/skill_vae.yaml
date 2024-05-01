@@ -5,16 +5,16 @@ policy_type: SkillVAE_Model
 
 action_dim: 7
 channel: 16
-codebook_dim: 512 # 512 for vq or 256 for fsq
+codebook_dim: 256 # 512 for vq or 256 for fsq
 kernels: [5,3] # first 5 rest 3
 strides: [2,2,2,3] # conv module will have 3 layers with strides 2,2,1
 
 quantizer_args:
-    quantizer_type: "residual_vq" # "vq" or "fsq" or residual_fsq or residual_vq
-    dim: ${codebook_dim}
-    codebook_size: [8,8,16] # 1024 for vq or [8,8,16] for residual_vq | only used for vq
-    num_quantizer: 3
-    levels: [[3,3],[3,3],[5,3]] # [8,5,5,5] for fsq or [[3,3],[3,3],[5,3]] for residual_fsq | only used for fsq
+    quantizer_type: "fsq" # "vq" or "fsq" or residual_fsq or residual_vq
+    dim: 256
+    codebook_size: 16 # 1024 for vq or [8,8,16] for residual_vq | only used for vq
+    num_quantizers: 3
+    levels: [5,3] # [8,5,5,5] for fsq or [[3,3],[3,3],[5,3]] for residual_fsq | only used for fsq
 
 defaults:
     - data_augmentation@color_aug: batch_wise_img_color_jitter_group_aug.yaml
