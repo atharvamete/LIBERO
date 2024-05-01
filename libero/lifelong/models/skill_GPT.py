@@ -9,9 +9,81 @@ from libero.lifelong.models.base_policy import BasePolicy
 from libero.lifelong.models.skill_vae import SkillVAE_Model
 from libero.lifelong.models.modules.skill_vae_modules import *
 from libero.lifelong.models.modules.skill_utils import SkillGPT_Config, SkillGPT, MLP_Proj, beam_search, top_k_sampling
-from libero.lifelong.models.skill_vae import ExtraModalityTokens
 from libero.lifelong.utils import torch_load_model
 from collections import deque
+
+class ExtraModalityTokens(nn.Module):
+    def __init__(
+        self,
+        use_joint=False,
+        use_gripper=False,
+        use_ee=False,
+        extra_num_layers=0,
+        extra_hidden_size=64,
+        extra_embedding_size=32,
+    ):
+        super().__init__()
+        self.use_joint = use_joint
+        self.use_gripper = use_gripper
+        self.use_ee = use_ee
+        self.extra_embedding_size = extra_embedding_size
+        joint_states_dim = 7
+        gripper_states_dim = 2
+        ee_dim = 3
+        self.num_extra = int(use_joint) + int(use_gripper) + int(use_ee)
+        extra_low_level_feature_dim = (
+            int(use_joint) * joint_states_dim
+            + int(use_gripper) * gripper_states_dim
+            + int(use_ee) * ee_dim
+        )
+        assert extra_low_level_feature_dim > 0, "[error] no extra information"
+        self.extra_encoders = {}
+        def generate_proprio_mlp_fn(modality_name, extra_low_level_feature_dim):
+            assert extra_low_level_feature_dim > 0  # we indeed have extra information
+            if extra_num_layers > 0:
+                layers = [nn.Linear(extra_low_level_feature_dim, extra_hidden_size)]
+                for i in range(1, extra_num_layers):
+                    layers += [
+                        nn.Linear(extra_hidden_size, extra_hidden_size),
+                        nn.ReLU(inplace=True),
+                    ]
+                if modality_name == "joint_states":
+                    layers += [nn.Linear(extra_low_level_feature_dim, extra_embedding_size*2)]
+                else:
+                    layers += [nn.Linear(extra_low_level_feature_dim, extra_embedding_size)]
+            else:
+                if modality_name == "joint_states":
+                    layers = [nn.Linear(extra_low_level_feature_dim, extra_embedding_size*2)]
+                else:
+                    layers = [nn.Linear(extra_low_level_feature_dim, extra_embedding_size)]
+            self.proprio_mlp = nn.Sequential(*layers)
+            self.extra_encoders[modality_name] = {"encoder": self.proprio_mlp}
+        for (proprio_dim, use_modality, modality_name) in [
+            (joint_states_dim, self.use_joint, "joint_states"),
+            (gripper_states_dim, self.use_gripper, "gripper_states"),
+            (ee_dim, self.use_ee, "ee_pos"),
+        ]:
+            if use_modality:
+                generate_proprio_mlp_fn(modality_name, proprio_dim)
+        self.encoders = nn.ModuleList(
+            [x["encoder"] for x in self.extra_encoders.values()]
+        )
+
+    def forward(self, obs_dict):
+        tensor_list = []
+        for (use_modality, modality_name) in [
+            (self.use_joint, "joint_states"),
+            (self.use_gripper, "gripper_states"),
+            (self.use_ee, "ee_pos"),
+        ]:
+            if use_modality:
+                tensor_list.append(
+                    self.extra_encoders[modality_name]["encoder"](
+                        obs_dict[modality_name]
+                    )
+                )
+        x = torch.cat(tensor_list, dim=-1)
+        return x
 
 class SkillGPT_Model(BasePolicy):
     def __init__(self, cfg, shape_meta):

@@ -11,24 +11,22 @@ defaults:
 
 # change defaults
 data:
-  seq_len: 8
+  seq_len: 96
   obs_seq_len: 1
 eval:
   eval: false
+  eval_every: 20
 train:
   batch_size: 256
   num_workers: 6
   n_epochs: 100
 policy:
-  skill_block_size: 8
-  use_m4: 1
-  cross_z: true
-  vq_type: "fsq"
-  fsq_level: [8,5,5,5]
-  use_causal_decoder: true
-  strides: [2,2,1]
+  skill_block_size: 96
+  fsq_level: [5,3]
+  kernel_sizes: [5,3,3,3,3,3,3,3,3]
+  strides: [1,1,2,1,2,1,2,1,3]
 
-exp_name: "m4op_8_f4_k3s4_tt" # model_type: m4, seq_len: 32, fsq_levels: 4, num_kernels: 3, stride_factor: 4, encoder-decoder_causality: true-true
+exp_name: "m4no_96_f2_k9s24_tt" # model_type: m4, seq_len: 32, fsq_levels: 4, num_kernels: 3, stride_factor: 4, encoder-decoder_causality: true-true
 seed: 10000
 use_wandb: true
 wandb_project: "diff-skill-libero"
