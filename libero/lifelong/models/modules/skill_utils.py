@@ -4,7 +4,7 @@ from torch import nn
 import torch
 from torch.nn import functional as F
 from einops.layers.torch import Rearrange
-
+from positional_encodings.torch_encodings import PositionalEncoding1D, Summer
 
 ###############################################################################
 #
@@ -230,7 +230,112 @@ class ResidualTemporalDeConvBlock(nn.Module):
             out = out + self.residual_conv(x)
         return torch.transpose(out, 1, 2)
 
+###############################################################################
+#
+# SkillGPT module using nn.Transformers
+#
+###############################################################################
+    
+class Transformer_Prior(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+        self.tok_emb = nn.Embedding(cfg.vocab_size_1+cfg.vocab_size_2+1, cfg.n_embd)
+        self.add_positional_emb = Summer(PositionalEncoding1D(cfg.n_embd))
+        self.decoder = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(
+                d_model=cfg.n_embd,
+                nhead=cfg.n_head,
+                dim_feedforward=4*cfg.n_embd,
+                dropout=cfg.attn_pdrop,
+                activation='gelu',
+                batch_first=True,
+                norm_first=True
+            ),
+            num_layers=cfg.n_layer
+        )
+        self.head_1 = nn.Linear(cfg.n_embd, cfg.vocab_size_1)
+        self.head_2 = nn.Linear(cfg.n_embd, cfg.vocab_size_2)
+        self.drop = nn.Dropout(cfg.embd_pdrop)
+        self.lnf = nn.LayerNorm(cfg.n_embd)
+        if cfg.offset_layers > 0:
+            self.offset_head = MLP_Proj(cfg.n_embd, cfg.offset_hidden_dim, cfg.offset_dim, num_layers=cfg.offset_layers)
 
+    def forward(self, idx, context, targets=None, return_offset=False):
+        x = self.tok_emb(idx)
+        x = self.add_positional_emb(x)
+        x = torch.cat([context, x], dim=1)
+        x = self.drop(x)
+        mask = nn.Transformer.generate_square_subsequent_mask(x.size(1),x.device)
+        x = self.decoder(x, mask=mask, is_causal=True)
+        x = x[:, context.size(1):, :]
+        x = self.lnf(x)
+        if x.size(1) <= self.cfg.block_size_1:
+            logits_1 = self.head_1(x)
+            logits_2 = None
+        else:
+            logits_1 = self.head_1(x[:, :self.cfg.block_size_1, :])
+            logits_2 = self.head_2(x[:, self.cfg.block_size_1:, :])
+
+        offset = self.offset_head(x[:,-1,:]) if return_offset else None
+
+        if targets is not None:
+            loss_1 = F.cross_entropy(logits_1.view(-1, logits_1.size(-1)), targets[0].view(-1))
+            loss_2 = F.cross_entropy(logits_2.view(-1, logits_2.size(-1)), targets[1].view(-1))
+            loss = loss_1 + loss_2
+            return logits_1, logits_2, loss, offset
+        else:
+            return logits_1, logits_2, offset
+
+
+class Transformer_Prior2(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+        self.tok_emb = nn.Embedding(cfg.vocab_size_1+cfg.vocab_size_2+1, cfg.n_embd)
+        self.add_positional_emb = Summer(PositionalEncoding1D(cfg.n_embd))
+        self.decoder = nn.TransformerDecoder(
+            nn.TransformerDecoderLayer(
+                d_model=cfg.n_embd,
+                nhead=cfg.n_head,
+                dim_feedforward=4*cfg.n_embd,
+                dropout=cfg.attn_pdrop,
+                activation='gelu',
+                batch_first=True,
+                norm_first=True
+            ),
+            num_layers=cfg.n_layer
+        )
+        self.head_1 = nn.Linear(cfg.n_embd, cfg.vocab_size_1)
+        self.head_2 = nn.Linear(cfg.n_embd, cfg.vocab_size_2)
+        self.drop = nn.Dropout(cfg.embd_pdrop)
+        self.lnf = nn.LayerNorm(cfg.n_embd)
+        if cfg.offset_layers > 0:
+            self.offset_head = MLP_Proj(cfg.n_embd, cfg.offset_hidden_dim, cfg.offset_dim, num_layers=cfg.offset_layers)
+
+    def forward(self, idx, context, targets=None, return_offset=False):
+        x = self.tok_emb(idx)
+        x = self.add_positional_emb(x)
+        x = self.drop(x)
+        mask = nn.Transformer.generate_square_subsequent_mask(x.size(1)).to(x.device)
+        x = self.decoder(x, context, mask=mask, is_causal=True)
+        x = self.lnf(x)
+        if x.size(1) <= self.cfg.block_size_1:
+            logits_1 = self.head_1(x)
+            logits_2 = None
+        else:
+            logits_1 = self.head_1(x[:, :self.cfg.block_size_1, :])
+            logits_2 = self.head_2(x[:, self.cfg.block_size_1:, :])
+
+        offset = self.offset_head(x[:,-1,:]) if return_offset else None
+
+        if targets is not None:
+            loss_1 = F.cross_entropy(logits_1.view(-1, logits_1.size(-1)), targets[0].view(-1))
+            loss_2 = F.cross_entropy(logits_2.view(-1, logits_2.size(-1)), targets[1].view(-1))
+            loss = loss_1 + loss_2
+            return logits_1, logits_2, loss, offset
+        else:
+            return logits_1, logits_2, offset
 ###############################################################################
 #
 # MinGPT module
