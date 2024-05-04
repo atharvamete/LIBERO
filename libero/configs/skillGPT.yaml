@@ -21,7 +21,7 @@ train:
   num_workers: 6
   n_epochs: 100
 
-exp_name: "m4no_single_stack_n6d384_off0" # n6d384: GPT model num_heads=num_layers=6, d_model=384
+exp_name: "m4no_single_stack_n6d384_off10_nobugs" # n6d384: GPT model num_heads=num_layers=6, d_model=384
 tune_decoder: false
 seed: 10000
 use_wandb: true

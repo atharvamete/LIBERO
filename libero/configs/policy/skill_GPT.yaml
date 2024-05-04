@@ -8,7 +8,7 @@ action_dim: 7
 
 prior:
     start_token: 1015
-    offset_layers: 0
+    offset_layers: 2
     offset_hidden_dim: 512
 
     vocab_size_1: 15
@@ -72,7 +72,7 @@ skill_vae_2:
     kernel_sizes: [5,3,3] # conv module will have 3 layers with kernel sizes 5,3,3
     strides: [2,2,1] # conv module will have 3 layers with strides 2,2,1
 
-offset_loss_scale: 0.0
+offset_loss_scale: 10.0
 lang_emb_dim: 512 # clip embedding size
 mpc_horizon: 24 # mpc horizon for execution
 

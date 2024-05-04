@@ -88,7 +88,11 @@ class ExtraModalityTokens(nn.Module):
 
 def load_vae(cfg, tune_decoder, device):
     skill_vae = SkillVAE(cfg)
-    skill_vae.load_state_dict(torch_load_model(cfg.path)[0], strict=False)
+    state_dict, _, _ = torch_load_model(cfg.path)
+    vae_state_dict = {key.replace('skill_vae.', ''): value for key, value in state_dict.items()}
+    skill_vae.load_state_dict(vae_state_dict, strict=False)
+    # print number of matching keys in skill_vae and state_dict
+    print(sum([1 for key in skill_vae.state_dict().keys() if key in vae_state_dict.keys()]), 'matching keys')
     skill_vae = skill_vae
     if not tune_decoder:
         skill_vae.eval()
@@ -118,7 +122,8 @@ class SkillGPT_Model(BasePolicy):
         
         self.skill_vae_1 = load_vae(policy_cfg.skill_vae_1, tune_decoder=cfg.tune_decoder, device=self.device).to(self.device)
         self.skill_vae_2 = load_vae(policy_cfg.skill_vae_2, tune_decoder=cfg.tune_decoder, device=self.device).to(self.device)
-
+        print(next(self.skill_vae_1.parameters()).requires_grad, 'skill_vae_1 grad')
+        print(next(self.skill_vae_2.parameters()).requires_grad, 'skill_vae_2 grad')
         self.skill_gpt = Transformer_Prior(self.prior_cfg).to(self.device)
 
         self.lang_proj = MLP_Proj(policy_cfg.lang_emb_dim, self.prior_cfg.n_embd, self.prior_cfg.n_embd)
