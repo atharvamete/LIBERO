@@ -40,10 +40,19 @@ class Multitask(Sequential):
         What the algorithm does at the beginning of learning each lifelong task.
         """
         self.current_task = task
+        # remove parameters corresponding to nn.Embedding
+        parameters_with_decay = [p for p in self.policy.parameters() if not isinstance(p, nn.Embedding)]
+        parameters_wo_decay = [p for p in self.policy.parameters() if isinstance(p, nn.Embedding)]
         # initialize the optimizer and scheduler
-        self.optimizer = self.policy.configure_optimizers(**self.cfg.train.optimizer.kwargs)
-        opt1 = self.print_num_parameters(self.optimizer)
-        print(f"Total number of parameters with optimizer: {opt1}")
+        self.optimizer = eval(self.cfg.train.optimizer.name)(
+            [
+                {"params": parameters_with_decay},
+                {"params": parameters_wo_decay, "weight_decay":0.0}
+            ],
+            **self.cfg.train.optimizer.kwargs
+        )
+        print('[info] Parameters with optimizer:', self.print_num_parameters(self.optimizer))
+        print(self.optimizer)
         self.scheduler = None
         if self.cfg.train.scheduler is not None:
             self.scheduler = eval(self.cfg.train.scheduler.name)(

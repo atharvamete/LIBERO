@@ -20,8 +20,8 @@ class SkillVAE(nn.Module):
         self.action_head = nn.Linear(cfg.decoder_dim, cfg.action_dim)
         self.conv_block = ResidualTemporalBlock(
             cfg.encoder_dim, cfg.encoder_dim, kernel_size=cfg.kernel_sizes, stride=cfg.strides, causal=cfg.use_causal_encoder)
-        # self.deconv_block = ResidualTemporalDeConvBlock(
-        #     cfg.decoder_dim, cfg.decoder_dim, kernel_size=cfg.kernel_sizes, stride=cfg.strides, causal=cfg.use_causal_decoder)
+        self.deconv_block = ResidualTemporalDeConvBlock(
+            cfg.decoder_dim, cfg.decoder_dim, kernel_size=cfg.kernel_sizes, stride=cfg.strides, causal=cfg.use_causal_decoder)
 
         encoder_layer = nn.TransformerEncoderLayer(d_model=cfg.encoder_dim, nhead=cfg.encoder_heads, dim_feedforward=4*cfg.encoder_dim, dropout=cfg.attn_pdrop, activation='gelu', batch_first=True, norm_first=True)
         self.encoder =  nn.TransformerEncoder(encoder_layer, num_layers=cfg.encoder_layers)

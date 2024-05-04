@@ -4,6 +4,7 @@ from torch import nn
 import torch
 from torch.nn import functional as F
 from einops.layers.torch import Rearrange
+from positional_encodings.torch_encodings import PositionalEncoding1D, Summer
 
 
 ###############################################################################
@@ -230,6 +231,55 @@ class ResidualTemporalDeConvBlock(nn.Module):
             out = out + self.residual_conv(x)
         return torch.transpose(out, 1, 2)
 
+###############################################################################
+#
+# SkillGPT module using nn.Transformers
+#
+###############################################################################
+
+class Transformer_Prior(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+        self.tok_emb = nn.Embedding(cfg.vocab_size+1, cfg.n_embd)
+        self.add_positional_emb = Summer(PositionalEncoding1D(cfg.n_embd))
+        self.decoder = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(
+                d_model=cfg.n_embd,
+                nhead=cfg.n_head,
+                dim_feedforward=4*cfg.n_embd,
+                dropout=cfg.attn_pdrop,
+                activation='gelu',
+                batch_first=True,
+                norm_first=True
+            ),
+            num_layers=cfg.n_layer
+        )
+        self.head = nn.Linear(cfg.n_embd, cfg.vocab_size)
+        self.drop = nn.Dropout(cfg.embd_pdrop)
+        self.lnf = nn.LayerNorm(cfg.n_embd)
+        if cfg.offset_layers > 0:
+            self.offset_head = MLP_Proj(cfg.n_embd, cfg.offset_hidden_dim, cfg.offset_dim, num_layers=cfg.offset_layers)
+
+    def forward(self, idx, context, targets=None, return_offset=False):
+        x = self.tok_emb(idx)
+        x = self.add_positional_emb(x)
+        x = torch.cat([context, x], dim=1)
+        x = self.drop(x)
+        mask = nn.Transformer.generate_square_subsequent_mask(x.size(1),x.device)
+        x = self.decoder(x, mask=mask, is_causal=True)
+        x = x[:, context.size(1):, :]
+        x = self.lnf(x)
+        logits = self.head(x)
+        
+        offset = self.offset_head(x[:,-1,:]) if return_offset else None
+
+        if targets is not None:
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+            loss = loss
+            return logits, loss, offset
+        else:
+            return logits, offset
 
 ###############################################################################
 #

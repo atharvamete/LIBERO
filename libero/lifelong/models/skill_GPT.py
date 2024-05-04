@@ -6,9 +6,10 @@ from libero.lifelong.models.modules.rgb_modules import *
 from libero.lifelong.models.modules.language_modules import *
 # from libero.lifelong.models.modules.transformer_modules import *
 from libero.lifelong.models.base_policy import BasePolicy
-from libero.lifelong.models.skill_vae import SkillVAE_Model
+# from libero.lifelong.models.skill_vae import SkillVAE_Model
 from libero.lifelong.models.modules.skill_vae_modules import *
-from libero.lifelong.models.modules.skill_utils import SkillGPT_Config, SkillGPT, MLP_Proj, beam_search, top_k_sampling
+from libero.lifelong.models.modules.skill_vae_modules import *
+from libero.lifelong.models.modules.skill_utils import Transformer_Prior, MLP_Proj, beam_search, top_k_sampling
 from libero.lifelong.utils import torch_load_model
 from collections import deque
 
@@ -85,6 +86,22 @@ class ExtraModalityTokens(nn.Module):
         x = torch.cat(tensor_list, dim=-1)
         return x
 
+def load_vae(cfg, tune_decoder, device):
+    skill_vae = SkillVAE(cfg)
+    state_dict, _, _ = torch_load_model(cfg.path)
+    vae_state_dict = {key.replace('skill_vae.', ''): value for key, value in state_dict.items()}
+    skill_vae.load_state_dict(vae_state_dict, strict=True)
+    # print number of matching keys in skill_vae and state_dict
+    print(sum([1 for key in skill_vae.state_dict().keys() if key in vae_state_dict.keys()]), 'matching keys')
+    skill_vae = skill_vae
+    if not tune_decoder:
+        skill_vae.eval()
+        for param in skill_vae.parameters():
+            param.requires_grad = False
+    else:
+        skill_vae.train()
+    return skill_vae
+
 class SkillGPT_Model(BasePolicy):
     def __init__(self, cfg, shape_meta):
         super().__init__(cfg, shape_meta)
@@ -96,69 +113,93 @@ class SkillGPT_Model(BasePolicy):
         self.mpc_horizon = policy_cfg.mpc_horizon
         self.action_queue = deque(maxlen=self.mpc_horizon)
         self.act_dim = policy_cfg.action_dim
-        self.decoder_block_size = policy_cfg.skill_block_size
+        self.vae_1_block_size = policy_cfg.skill_vae_1.skill_block_size
+        self.return_offset = True if policy_cfg.prior.offset_layers > 0 else False
+        offset_dim = self.act_dim*self.vae_1_block_size
+        self.prior_cfg.offset_dim = offset_dim
         
-        self.skill_vae_policy = SkillVAE_Model(cfg, shape_meta)
-        if cfg.pretrain_skillVAE_path is not None:
-            self.skill_vae_policy.load_state_dict(torch_load_model(cfg.pretrain_skillVAE_path)[0], strict=False)
-        self.skill_vae_policy = self.skill_vae_policy.to(self.device)
-        if not cfg.tune_decoder:
-            self.skill_vae_policy.eval()
-            for param in self.skill_vae_policy.parameters():
-                param.requires_grad = False
-        else:
-            self.skill_vae_policy.train()
+        self.skill_vae_1 = load_vae(policy_cfg.skill_vae_1, tune_decoder=cfg.tune_decoder, device=self.device).to(self.device)
+        print(next(self.skill_vae_1.parameters()).requires_grad, 'skill_vae_1 grad')
+        self.skill_gpt = Transformer_Prior(self.prior_cfg).to(self.device)
 
-        offset_dim = self.act_dim*self.decoder_block_size
-        skillgpt_config = SkillGPT_Config(policy_cfg.prior, offset_dim)
-        self.skill_gpt = SkillGPT(skillgpt_config).to(self.device)
-        self.lang_proj = MLP_Proj(policy_cfg.lang_emb_dim, skillgpt_config.n_embd, skillgpt_config.n_embd)
-        self.obs_proj = MLP_Proj(policy_cfg.cat_obs_dim, skillgpt_config.n_embd, skillgpt_config.n_embd)
+        self.lang_proj = MLP_Proj(policy_cfg.lang_emb_dim, self.prior_cfg.n_embd, self.prior_cfg.n_embd)
+        self.obs_proj = MLP_Proj(policy_cfg.cat_obs_dim, self.prior_cfg.n_embd, self.prior_cfg.n_embd)
 
+        self.image_encoders = {}
+        for name in shape_meta["all_shapes"].keys():
+            if "rgb" in name or "depth" in name:
+                kwargs = policy_cfg.image_encoder.network_kwargs
+                kwargs.input_shape = shape_meta["all_shapes"][name]
+                kwargs.output_size = policy_cfg.obs_emb_dim
+                self.image_encoders[name] = {
+                    "input_shape": shape_meta["all_shapes"][name],
+                    "encoder": eval(policy_cfg.image_encoder.network)(**kwargs),
+                }
+        self.encoders = nn.ModuleList(
+            [x["encoder"] for x in self.image_encoders.values()]
+        )
+        self.extra_encoder = ExtraModalityTokens(
+            use_joint=cfg.data.use_joint,
+            use_gripper=cfg.data.use_gripper,
+            use_ee=cfg.data.use_ee,
+            extra_num_layers=policy_cfg.extra_num_layers,
+            extra_hidden_size=policy_cfg.extra_hidden_size,
+            extra_embedding_size=policy_cfg.extra_embedding_size,
+        )
         if cfg.train.loss_type == "mse":
             self.loss = torch.nn.MSELoss()
         elif cfg.train.loss_type == "l1":
             self.loss = torch.nn.L1Loss()
         else:
             raise NotImplementedError(f"Unknown loss type {cfg.train.loss_type}")
-
-    def print_data(self, data):
-        for key in data.keys():
-            if isinstance(data[key], dict):
-                for sub_key in data[key].keys():
-                    print(key, sub_key, data[key][sub_key].shape)
-            else:
-                print(key, data[key].shape)
+    
+    def obs_encode(self, data):
+        ### 1. encode image
+        encoded = []
+        for img_name in self.image_encoders.keys():
+            x = data["obs"][img_name]
+            B, T, C, H, W = x.shape
+            e = self.image_encoders[img_name]["encoder"](
+                x.reshape(B * T, C, H, W),
+                langs=data["task_emb"]
+                .reshape(B, 1, -1)
+                .repeat(1, T, 1)
+                .reshape(B * T, -1),
+            ).view(B, T, -1)
+            encoded.append(e)
+        # 2. add gripper info
+        encoded.append(self.extra_encoder(data["obs"]))  # add (B, T, H_extra)
+        encoded = torch.cat(encoded, -1)  # (B, T, H_all)
+        init_obs_emb = self.obs_proj(encoded)
+        lang_emb = self.lang_proj(data["task_emb"]).unsqueeze(1)
+        context = torch.cat([lang_emb, init_obs_emb], dim=1)
+        return context
 
     def forward(self, data):
-        with torch.no_grad():
-            indices = self.skill_vae_policy.skill_vae.get_indices(data["actions"]).long()
-        init_obs = self.skill_vae_policy.obs_encode(data)
-        start_tokens = (torch.ones((data["actions"].shape[0], 1))*self.start_token).long().to(self.device)
+        indices = self.skill_vae_1.get_indices(data["actions"]).long()
+        context = self.obs_encode(data)
+        start_tokens = (torch.ones((context.shape[0], 1))*self.start_token).long().to(self.device)
         x = torch.cat([start_tokens, indices[:,:-1]], dim=1)
         targets = indices.clone()
-        init_obs_emb = self.obs_proj(init_obs)
-        lang_emb = self.lang_proj(data["task_emb"])
-        context = torch.cat([lang_emb.unsqueeze(1), init_obs_emb.unsqueeze(1)], dim=1)
-        logits, prior_loss, offset = self.skill_gpt(x, context, targets, return_offset=True)
-        offset = offset.view(-1, self.decoder_block_size, self.act_dim)
-        with torch.no_grad():
-            probs = torch.softmax(logits, dim=-1)
-            sampled_indices = torch.multinomial(probs.view(-1,logits.shape[-1]),1)
-            sampled_indices = sampled_indices.view(-1,logits.shape[1])
-        pred_actions = self.skill_vae_policy.skill_vae.decode_actions(sampled_indices, init_obs)
-        pred_actions_with_offset = pred_actions + offset
-        return pred_actions_with_offset, prior_loss
-
-    def loss_fn(self, pred, target):
-        return self.loss(pred, target)
+        logits, prior_loss, offset = self.skill_gpt(x, context, targets, return_offset=self.return_offset)
+        if self.return_offset:
+            offset = offset.view(-1, self.vae_1_block_size, self.act_dim)
+            with torch.no_grad():
+                probs = torch.softmax(logits, dim=-1)
+                sampled_indices = torch.multinomial(probs.view(-1,logits.shape[-1]),1)
+                sampled_indices = sampled_indices.view(-1,logits.shape[1])
+            pred_actions = self.skill_vae_1.decode_actions(sampled_indices)
+            pred_actions_with_offset = pred_actions + offset
+            offset_loss = self.loss(pred_actions_with_offset, data["actions"])
+            total_loss = prior_loss + self.offset_loss_scale*offset_loss
+            return total_loss, {'offset_loss': offset_loss}
+        else:
+            return prior_loss, {}
 
     def compute_loss(self, data):
-        data = self.skill_vae_policy.preprocess_input(data, train_mode=True)
-        pred, prior_loss = self.forward(data)
-        loss = self.loss_fn(pred, data["actions"])
-        total_loss = prior_loss + self.offset_loss_scale*loss
-        return total_loss, {'offset_loss': loss}
+        data = self.preprocess_input(data, train_mode=True)
+        loss, info = self.forward(data)
+        return loss, info
     
     def get_action(self, data):
         self.eval()
@@ -170,73 +211,25 @@ class SkillGPT_Model(BasePolicy):
         return action
     
     def sample_actions(self, data):
-        data = self.skill_vae_policy.preprocess_input(data, train_mode=False)
-        init_obs = self.skill_vae_policy.obs_encode(data)
-        init_obs_emb = self.obs_proj(init_obs)
-        lang_emb = self.lang_proj(data["task_emb"])
-        context = torch.cat([lang_emb.unsqueeze(1), init_obs_emb.unsqueeze(1)], dim=1)
+        data = self.preprocess_input(data, train_mode=False)
+        context = self.obs_encode(data)
         sampled_indices, offset = self.get_indices_top_k(context)
-        # print(sampled_indices, 'sampled_indices')
-        # print('offset max min', offset.max(), offset.min())
-        pred_actions = self.skill_vae_policy.skill_vae.decode_actions(sampled_indices, init_obs)
-        pred_actions_with_offset = pred_actions + offset
+        pred_actions = self.skill_vae_1.decode_actions(sampled_indices)
+        pred_actions_with_offset = pred_actions + offset if offset is not None else pred_actions
         pred_actions_with_offset = pred_actions_with_offset.permute(1,0,2)
         return pred_actions_with_offset.detach().cpu().numpy()
-
-    def get_indices(self, context):
-        x = torch.ones((context.shape[0], 1)).long().to(self.device)*self.start_token
-        for i in range(self.prior_cfg.block_size):
-            if i == self.prior_cfg.block_size-1:
-                logits, offset = self.skill_gpt(x, context, None, return_offset=True)
-            else:
-                logits = self.skill_gpt(x, context)
-            next_indices = torch.multinomial(torch.softmax(logits[:,-1,:], dim=-1), 1)
-            x = torch.cat([x, next_indices], dim=1)
-        offset = offset.view(-1, self.decoder_block_size, self.act_dim)
-        return x[:,1:], offset
 
     def get_indices_top_k(self, context):
         x = torch.ones((context.shape[0], 1)).long().to(self.device)*self.start_token
         for i in range(self.prior_cfg.block_size):
             if i == self.prior_cfg.block_size-1:
-                logits, offset = self.skill_gpt(x, context, None, return_offset=True)
+                logits,offset = self.skill_gpt(x, context, return_offset=self.return_offset)
+                offset = offset.view(-1, self.vae_1_block_size, self.act_dim) if self.return_offset else None
             else:
-                logits = self.skill_gpt(x, context)
+                logits,_ = self.skill_gpt(x, context)
             next_indices = top_k_sampling(logits[:,-1,:], self.prior_cfg.beam_size, self.prior_cfg.temperature)
             x = torch.cat([x, next_indices], dim=1)
-        offset = offset.view(-1, self.decoder_block_size, self.act_dim)
         return x[:,1:], offset
-
-    def get_indices_beam(self, context):
-        outputs = beam_search(self.start_token, self.skill_gpt, context, self.prior_cfg.block_size, self.device, self.prior_cfg.beam_size, self.prior_cfg.temperature)
-        final_indices = torch.tensor(outputs).unsqueeze(0).to(self.device)
-        _, offset = self.skill_gpt(final_indices, context, None, return_offset=True)
-        offset = offset.view(-1, self.decoder_block_size, self.act_dim)
-        return final_indices, offset
 
     def reset(self):
         self.action_queue = deque(maxlen=self.mpc_horizon)
-    
-    def configure_optimizers(self, lr, betas, weight_decay):
-        learning_rate = lr
-        # Get the optimizer configured for the decoder
-        decoder_optimizer = self.skill_vae_policy.configure_optimizers(learning_rate, betas, weight_decay)
-        # Get the optimizer configured for GPT
-        gpt_optimizer = self.skill_gpt.configure_optimizers(weight_decay, learning_rate, betas)
-        # Combine the two optimizers
-        combined_param_groups = decoder_optimizer.param_groups + gpt_optimizer.param_groups
-        optimizer = torch.optim.AdamW(combined_param_groups)
-        # add remaining parameters to optimizer
-        optimizer.add_param_group({'params': self.lang_proj.parameters(), 'weight_decay': weight_decay, 'lr': learning_rate, 'betas': betas})
-        optimizer.add_param_group({'params': self.obs_proj.parameters(), 'weight_decay': weight_decay, 'lr': learning_rate, 'betas': betas})
-        # all_params = [p for p in self.parameters()]
-        # decoder_params = [p for p in self.skill_vae_policy.parameters()]
-        # gpt_params = [p for p in self.skill_gpt.parameters()]
-        # other_params = [p for p in all_params if p not in decoder_params and p not in gpt_params]
-        # optimizer.add_param_group({
-        #     'params': other_params,
-        #     'weight_decay': weight_decay,
-        #     'lr': learning_rate,
-        #     'betas': betas
-        # })
-        return optimizer
