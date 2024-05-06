@@ -18,17 +18,12 @@ data:
   obs_seq_len: 1
 eval:
   eval: true
-  n_eval: 20
-  num_procs: 8
+  n_eval: 40
+  num_procs: 5
   batch_size: 128
   num_workers: 6
-policy:
-  use_m4: 1
-  cross_z: true
-  vq_type: "fsq"
-  fsq_level: [8,5,5,5]
-  use_causal_decoder: true
-  strides: [2,2,1]
+
+tune_decoder: false
 
 pretrain_skillVAE_path: null
 pretrain_model_path: "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/experiments_finetune_clip/LIBERO_10/Multitask/SkillGPT_Model/ResnetEncoder/m4_32_f4_k3s4_tt_5shot/run_001/multitask_model_ep20.pth"

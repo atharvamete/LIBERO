@@ -8,7 +8,7 @@ action_dim: 7
 
 prior:
     start_token: 1000
-    offset_layers: 2
+    offset_layers: 0
     offset_hidden_dim: 512
 
     vocab_size: 1000
@@ -23,7 +23,7 @@ prior:
     temperature: 1.0 # temperature for sampling
 
 skill_vae_1:
-    path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask_Pretrain/SkillVAE_Model/ResnetEncoder/m4no_32_f4_k3s4_tt/run_001/multitask_model_ep100.pth"
+    path: null
     action_dim: 7
     encoder_dim: 256
     decoder_dim: 256
