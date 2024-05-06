@@ -104,6 +104,8 @@ class SkillGPT_Model(BasePolicy):
         lang_emb = self.lang_proj(data["task_emb"])
         context = torch.cat([lang_emb.unsqueeze(1), init_obs_emb.unsqueeze(1)], dim=1)
         sampled_indices, offset = self.get_indices_top_k(context)
+        if self.offset_loss_scale==0.0:
+            offset = torch.zeros_like(offset)
         # print(sampled_indices, 'sampled_indices')
         # print('offset max min', offset.max(), offset.min())
         pred_actions = self.skill_vae_policy.skill_vae.decode_actions(sampled_indices, init_obs)

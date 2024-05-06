@@ -163,10 +163,9 @@ def main(hydra_cfg):
     if cfg.pretrain_model_path != "":  # load a pretrained model if there is any
         try:
             algo.policy.load_state_dict(torch_load_model(cfg.pretrain_model_path)[0])
-        except:
-            print(
-                f"[error] cannot load pretrained model from {cfg.pretrain_model_path}"
-            )
+        except Exception as e:
+            print(f"[error] failed to load pretrained model from {cfg.pretrain_model_path}")
+            print(f"[error] {e}")
             sys.exit(0)
 
     print(f"[info] start lifelong learning with algo {cfg.lifelong.algo}")
