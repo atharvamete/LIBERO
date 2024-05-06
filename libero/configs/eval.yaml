@@ -19,7 +19,7 @@ data:
 eval:
   eval: true
   n_eval: 40
-  num_procs: 6
+  num_procs: 5
   batch_size: 128
   num_workers: 6
 policy:
