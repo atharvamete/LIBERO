@@ -3,8 +3,30 @@ import numpy as np
 from torch import nn
 import torch
 from torch.nn import functional as F
+import math
 from einops.layers.torch import Rearrange
 
+###############################################################################
+#
+# Posn emb module module
+#
+###############################################################################
+
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, dropout=0.0, max_len=500):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
+
+    def forward(self, batch, size):
+        pe = self.pe[:,:size, :]
+        return self.dropout(pe.repeat(batch,1,1))
 
 ###############################################################################
 #
@@ -208,6 +230,83 @@ class ResidualTemporalDeConvBlock(nn.Module):
             out = out + self.residual_conv(x)
         return torch.transpose(out, 1, 2)
 
+###############################################################################
+#
+# SkillGPT module using nn.Transformers
+#
+###############################################################################
+
+class Transformer_Prior(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+        self.vocab_size = cfg.vocab_size
+        self.start_token = cfg.start_token
+        print(sum(self.vocab_size)+1,'summations')
+        self.tok_emb = nn.Embedding(sum(self.vocab_size)+1, cfg.n_embd)
+        self.posn_emb = PositionalEncoding(cfg.n_embd)
+        self.decoder = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(
+                d_model=cfg.n_embd,
+                nhead=cfg.n_head,
+                dim_feedforward=4*cfg.n_embd,
+                dropout=cfg.attn_pdrop,
+                activation='gelu',
+                batch_first=True,
+                norm_first=True
+            ),
+            num_layers=cfg.n_layer
+        )
+        output_dim = max(self.vocab_size)
+        self.heads = nn.ModuleList([nn.Linear(cfg.n_embd, output_dim) for _ in self.vocab_size])
+        self.drop = nn.Dropout(cfg.embd_pdrop)
+        self.lnf = nn.LayerNorm(cfg.n_embd)
+        self.indices_offset = torch.tensor(np.cumsum([0] + self.vocab_size[:-1]), dtype=torch.long)
+        print(self.indices_offset,'indices_offset')
+        if cfg.offset_layers > 0:
+            self.offset_head = MLP_Proj(cfg.n_embd, cfg.offset_hidden_dim, cfg.offset_dim, num_layers=cfg.offset_layers)
+
+    def get_posn_emb(self, idx):
+        pos_emb = self.posn_emb(idx.size(0), idx.size(1)+1).to(idx.device)
+        pos_zero = pos_emb[:,0,:].unsqueeze(1)
+        pos_emb = pos_emb[:,1:,:].unsqueeze(-2).repeat(1, 1, len(self.vocab_size), 1).view(pos_emb.size(0), -1, pos_emb.size(-1))
+        pos_emb = torch.cat([pos_zero, pos_emb], dim=1)
+        return pos_emb
+
+    def forward(self, idx, context, targets=None, return_offset=False):
+        idx = idx + self.indices_offset.view(1,1,-1).to(idx.device)
+        pos_emb = self.get_posn_emb(idx)
+        idx = idx.view(idx.size(0),-1)
+        start_idx = (torch.ones((idx.size(0), 1))*self.start_token).long().to(idx.device)
+        idx = torch.cat([start_idx, idx[:,:-1]], dim=1)
+        x = self.tok_emb(idx) + pos_emb[:,:-1,:]
+        x = torch.cat([context, x], dim=1)
+        x = self.drop(x)
+        mask = nn.Transformer.generate_square_subsequent_mask(x.size(1),x.device)
+        x = self.decoder(x, mask=mask, is_causal=True)
+        x = x[:, context.size(1):, :]
+        x = self.lnf(x)
+        offset = self.offset_head(x[:,-1,:]) if return_offset else None
+        x = x.view(x.size(0),-1,len(self.vocab_size),x.size(-1))
+        logits = []
+        for i, head in enumerate(self.heads):
+            logit = head(x[:,:,i,:])
+            logit[:,:,self.vocab_size[i]:].fill_(-float('inf'))
+            logits.append(logit)
+        logits = torch.stack(logits, dim=-2)
+        logits = logits.view(logits.size(0), -1, logits.size(-1))
+        if targets is not None:
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+            return logits, loss, offset
+        else:
+            return logits, offset
+    
+    def sample_indices(self, logits):
+        logits = logits.view(logits.size(0), -1, len(self.vocab_size), logits.size(-1))
+        probs = torch.softmax(logits, dim=-1)
+        sampled_indices = torch.multinomial(probs.view(-1,logits.shape[-1]),1)
+        sampled_indices = sampled_indices.view(-1,logits.shape[1],logits.shape[2])
+        return sampled_indices
 
 ###############################################################################
 #
