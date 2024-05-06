@@ -204,7 +204,7 @@ class SkillGPT_Model(BasePolicy):
         return pred_actions_with_offset.detach().cpu().numpy()
 
     def get_indices_top_k(self, context):
-        raise NotImplementedError
+        return self.skill_gpt.get_next_indices(context, self.return_offset)
 
     def reset(self):
         self.action_queue = deque(maxlen=self.mpc_horizon)

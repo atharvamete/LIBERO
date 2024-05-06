@@ -12,6 +12,7 @@ prior:
     offset_hidden_dim: 512
 
     vocab_size: [9,9,15]
+    block_size: 4
     
     n_layer: 6
     n_head: 6

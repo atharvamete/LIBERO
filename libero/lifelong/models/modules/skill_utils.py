@@ -242,7 +242,8 @@ class Transformer_Prior(nn.Module):
         self.cfg = cfg
         self.vocab_size = cfg.vocab_size
         self.start_token = cfg.start_token
-        print(sum(self.vocab_size)+1,'summations')
+        self.block_size = cfg.block_size
+        print(sum(self.vocab_size)+1,'total vocab size')
         self.tok_emb = nn.Embedding(sum(self.vocab_size)+1, cfg.n_embd)
         self.posn_emb = PositionalEncoding(cfg.n_embd)
         self.decoder = nn.TransformerEncoder(
@@ -300,6 +301,40 @@ class Transformer_Prior(nn.Module):
             return logits, loss, offset
         else:
             return logits, offset
+    
+    def get_emb_offsets(self, idx):
+        if idx.size(1) == 1:
+            return self.posn_emb(idx.size(0), 1).to(idx.device), torch.zeros_like(idx).long().to(idx.device)
+        block_len = (idx.size(1)+1)//len(self.vocab_size)
+        pos_emb = self.posn_emb(idx.size(0), block_len+1).to(idx.device)
+        pos_zero = pos_emb[:,0,:].unsqueeze(1)
+        pos_emb = pos_emb[:,1:,:].unsqueeze(-2).repeat(1, 1, len(self.vocab_size), 1).view(pos_emb.size(0), -1, pos_emb.size(-1))
+        pos_emb = torch.cat([pos_zero, pos_emb], dim=1)
+        offsets = self.indices_offset.view(1,1,-1).repeat(idx.size(0), block_len, 1).view(idx.size(0), -1)
+        offsets = torch.cat([torch.zeros((idx.size(0),1), dtype=torch.long), offsets], dim=1)
+        return pos_emb[:,:idx.size(1),:], offsets[:,:idx.size(1)].to(idx.device)
+
+    def get_next_indices(self, context, return_offset=False):
+        start_idx = (torch.ones((context.size(0), 1))*self.start_token).long().to(context.device)
+        idx = start_idx
+        for i in range(self.block_size*len(self.vocab_size)):
+            pos_emb, offsets = self.get_emb_offsets(idx)
+            idx_input = idx + offsets
+            x = self.tok_emb(idx_input) + pos_emb
+            x = torch.cat([context, x], dim=1)
+            x = self.drop(x)
+            mask = nn.Transformer.generate_square_subsequent_mask(x.size(1),x.device)
+            x = self.decoder(x, mask=mask, is_causal=True)
+            x = x[:, context.size(1):, :]
+            x = self.lnf(x)
+            offset = self.offset_head(x[:,-1,:]) if return_offset and i==self.block_size-1 else None
+            logits = self.heads[(len(idx)-1)%len(self.vocab_size)](x[:,-1,:])
+            logits[:,self.vocab_size[(len(idx)-1)%len(self.vocab_size)]:].fill_(-float('inf'))
+            next_index = top_k_sampling(logits, self.cfg.beam_size, self.cfg.temperature)
+            idx = torch.cat([idx, next_index], dim=1)
+        idx = idx[:,1:]
+        idx = idx.view(idx.size(0),-1,len(self.vocab_size))
+        return idx, offset
     
     def sample_indices(self, logits):
         logits = logits.view(logits.size(0), -1, len(self.vocab_size), logits.size(-1))
