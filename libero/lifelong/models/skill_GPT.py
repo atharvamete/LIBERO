@@ -249,7 +249,7 @@ class SkillGPT_Model(BasePolicy):
             next_indices = top_k_sampling(logits_1[:,-1,:], self.prior_cfg.beam_size, self.prior_cfg.temperature)
             x = torch.cat([x, next_indices], dim=1)
         for i in range(self.prior_cfg.block_size_2):
-            if i == self.prior_cfg.block_size-1:
+            if i == self.prior_cfg.block_size_2-1:
                 _,logits_2,offset = self.skill_gpt(x, context, return_offset=self.return_offset)
                 offset = offset.view(-1, self.vae_1_block_size, self.act_dim) if self.return_offset else None
             else:

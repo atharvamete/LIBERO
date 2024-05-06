@@ -14,24 +14,17 @@ defaults:
 
 # change defaults
 data:
-  seq_len: 32
+  seq_len: 96
   obs_seq_len: 1
 eval:
   eval: true
-  n_eval: 20
-  num_procs: 8
+  n_eval: 1
+  num_procs: 2
   batch_size: 128
   num_workers: 6
-policy:
-  use_m4: 1
-  cross_z: true
-  vq_type: "fsq"
-  fsq_level: [8,5,5,5]
-  use_causal_decoder: true
-  strides: [2,2,1]
 
 pretrain_skillVAE_path: null
-pretrain_model_path: "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/experiments_finetune_clip/LIBERO_10/Multitask/SkillGPT_Model/ResnetEncoder/m4_32_f4_k3s4_tt_5shot/run_001/multitask_model_ep20.pth"
+pretrain_model_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_single_stack_n6d384_off10_nobugs/run_001/multitask_model_ep80.pth"
 exp_name: "eval_m4_32_f4_k3s4_tt_5shot_e20"
 seed: 1000
 use_wandb: false
@@ -40,8 +33,9 @@ folder: null # use default path
 bddl_folder: null # use default path
 init_states_folder: null # use default path
 load_previous_model: false
+tune_decoder: false
 device: "cuda"
 task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
-benchmark_name: "LIBERO_90"
+benchmark_name: "LIBERO_10"
