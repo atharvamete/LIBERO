@@ -7,11 +7,11 @@ cat_obs_dim: 640 # 256 + 256 + 32 + 32 + 64 (front_cam, gripper_cam, gripper_sta
 action_dim: 7
 
 prior:
-    start_token: 33
+    start_token: 32
     offset_layers: 0
     offset_hidden_dim: 512
 
-    vocab_size: [9,9,15]
+    vocab_size: [8,8,16]
     block_size: 4
     
     n_layer: 6
@@ -27,13 +27,13 @@ skill_vae:
     skill_block_size: 96
 
 channel: 16
-codebook_dim: 256 # 512 for vq or 256 for fsq
+codebook_dim: 512 # 512 for vq or 256 for fsq
 kernels: [5,3] # first 5 rest 3
 strides: [2,2,2,3] # conv module will have 3 layers with strides 2,2,1
 
 quantizer_args:
-    quantizer_type: "residual_fsq" # "vq" or "fsq" or residual_fsq or residual_vq
-    dim: 256
+    quantizer_type: "residual_vq" # "vq" or "fsq" or residual_fsq or residual_vq
+    dim: 512
     codebook_size: [8,8,16] # 1024 for vq or [8,8,16] for residual_vq | only used for vq
     num_quantizers: 3
     levels: [[3,3],[3,3],[5,3]] # [8,5,5,5] for fsq or [[3,3],[3,3],[5,3]] for residual_fsq | only used for fsq

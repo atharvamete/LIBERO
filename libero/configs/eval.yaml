@@ -18,14 +18,14 @@ data:
   obs_seq_len: 1
 eval:
   eval: true
-  n_eval: 2
-  num_procs: 2
+  n_eval: 40
+  num_procs: 4
   batch_size: 128
   num_workers: 6
 
 pretrain_skillVAE_path: null
-pretrain_model_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/codec_rfq_n6d384_off0/run_001/multitask_model_ep80.pth"
-exp_name: "trial_eval_m4_32_f4_k3s4_tt_5shot_e20"
+pretrain_model_path: "/satassdscratch/amete7/LIBERO/experiments_finetune_clip/LIBERO_10/Multitask/SkillGPT_Model/ResnetEncoder/codec_rvq_n6d384_off0_5shot/run_001/multitask_model_ep100.pth"
+exp_name: "eval40_lib10_codec_rvq_n6d384_off0_5shot"
 seed: 1000
 use_wandb: false
 wandb_project: "diff-skill-libero"
