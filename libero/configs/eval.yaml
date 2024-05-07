@@ -18,8 +18,8 @@ data:
   obs_seq_len: 1
 eval:
   eval: true
-  n_eval: 1
-  num_procs: 2
+  n_eval: 40
+  num_procs: 5
   batch_size: 128
   num_workers: 6
 
@@ -38,4 +38,4 @@ device: "cuda"
 task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
-benchmark_name: "LIBERO_10"
+benchmark_name: "LIBERO_90"

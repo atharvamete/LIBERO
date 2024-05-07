@@ -88,12 +88,12 @@ class ExtraModalityTokens(nn.Module):
 
 def load_vae(cfg, tune_decoder, device):
     skill_vae = SkillVAE(cfg)
-    state_dict, _, _ = torch_load_model(cfg.path)
-    vae_state_dict = {key.replace('skill_vae.', ''): value for key, value in state_dict.items()}
-    skill_vae.load_state_dict(vae_state_dict, strict=False)
-    # print number of matching keys in skill_vae and state_dict
-    print(sum([1 for key in skill_vae.state_dict().keys() if key in vae_state_dict.keys()]), 'matching keys')
-    skill_vae = skill_vae
+    if cfg.path is not None:
+        state_dict, _, _ = torch_load_model(cfg.path)
+        vae_state_dict = {key.replace('skill_vae.', ''): value for key, value in state_dict.items()}
+        skill_vae.load_state_dict(vae_state_dict, strict=False)
+        # print number of matching keys in skill_vae and state_dict
+        print(sum([1 for key in skill_vae.state_dict().keys() if key in vae_state_dict.keys()]), 'matching keys')
     if not tune_decoder:
         skill_vae.eval()
         for param in skill_vae.parameters():
@@ -180,8 +180,9 @@ class SkillGPT_Model(BasePolicy):
         return context
 
     def forward(self, data):
-        indices_1 = self.skill_vae_1.get_indices(data["actions"]).long()
-        indices_2 = self.get_indices_from_actions(data["actions"]) + int(self.prior_cfg.vocab_size_1)
+        with torch.no_grad():
+            indices_1 = self.skill_vae_1.get_indices(data["actions"]).long()
+            indices_2 = self.get_indices_from_actions(data["actions"]) + int(self.prior_cfg.vocab_size_1)
         context = self.obs_encode(data)
         start_tokens = (torch.ones((context.shape[0], 1))*self.start_token).long().to(self.device)
         x = torch.cat([start_tokens, indices_1, indices_2[:,:-1]], dim=1)

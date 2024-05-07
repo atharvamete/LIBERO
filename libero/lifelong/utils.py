@@ -62,7 +62,7 @@ def torch_load_model(model_path, map_location=None):
         cfg = model_dict["cfg"]
     if "previous_masks" in model_dict:
         previous_masks = model_dict["previous_masks"]
-    # print(model_dict["state_dict"].keys())
+    print(model_dict["state_dict"].keys())
     return model_dict["state_dict"], cfg, previous_masks
 
 
