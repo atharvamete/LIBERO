@@ -101,7 +101,8 @@ class SkillGPT_Model(BasePolicy):
         self.prior_cfg.offset_dim = offset_dim
         
         self.skill_vae = SkillVAE_Model(cfg, shape_meta)
-        self.skill_vae.load_state_dict(torch_load_model(policy_cfg.skill_vae.path)[0], strict=True)
+        if policy_cfg.skill_vae.path is not None:
+            self.skill_vae.load_state_dict(torch_load_model(policy_cfg.skill_vae.path)[0], strict=True)
         if not cfg.tune_decoder:
             self.skill_vae.eval()
             for param in self.skill_vae.parameters():
@@ -164,7 +165,8 @@ class SkillGPT_Model(BasePolicy):
         return context
 
     def forward(self, data):
-        indices = self.skill_vae.get_indices(data["actions"]).long()
+        with torch.no_grad():
+            indices = self.skill_vae.get_indices(data["actions"]).long()
         context = self.obs_encode(data)
         targets = indices.clone().detach()
         logits, prior_loss, offset = self.skill_gpt(indices, context, targets, return_offset=self.return_offset)

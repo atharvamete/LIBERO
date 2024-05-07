@@ -23,7 +23,7 @@ prior:
     temperature: 1.0 # temperature for sampling
 
 skill_vae:
-    path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask_Pretrain/SkillVAE_Model/ResnetEncoder/codec_rfq_1000/run_001/multitask_model_ep100.pth"
+    path: null
     skill_block_size: 96
 
 channel: 16
