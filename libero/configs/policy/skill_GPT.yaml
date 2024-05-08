@@ -8,7 +8,7 @@ action_dim: 7
 
 prior:
     start_token: 1000
-    offset_layers: 0
+    offset_layers: 2
     offset_hidden_dim: 512
 
     vocab_size: 1000
