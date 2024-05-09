@@ -21,13 +21,13 @@ eval:
   n_eval: 40
   num_procs: 4
   batch_size: 128
-  num_workers: 6
+  num_workers: 4
 
 tune_decoder: false
 
 pretrain_skillVAE_path: null
-pretrain_model_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f4_k3s4_tt_n6d384_off10/run_001/multitask_model_ep100.pth"
-exp_name: "eval40_lib90_m4no_32_f4_k3s4_tt_n6d384_off10"
+pretrain_model_path: "/satassdscratch/amete7/LIBERO/experiments_finetune_clip/LIBERO_10/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f4_k3s4_tt_n6d384_nooff10_5shot_dec/run_001/multitask_model_ep100.pth"
+exp_name: "eval40_m4no_32_f4_k3s4_tt_n6d384_nooff10_5shot_dec"
 seed: 1000
 use_wandb: false
 wandb_project: "diff-skill-libero"
@@ -39,4 +39,4 @@ device: "cuda"
 task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
-benchmark_name: "LIBERO_90"
+benchmark_name: "LIBERO_10"
