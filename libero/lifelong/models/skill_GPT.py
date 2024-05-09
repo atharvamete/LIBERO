@@ -183,19 +183,17 @@ class SkillGPT_Model(BasePolicy):
         x = torch.cat([start_tokens, indices[:,:-1]], dim=1)
         targets = indices.clone()
         logits, prior_loss, offset = self.skill_gpt(x, context, targets, return_offset=self.return_offset)
+        with torch.no_grad():
+            probs = torch.softmax(logits, dim=-1)
+            sampled_indices = torch.multinomial(probs.view(-1,logits.shape[-1]),1)
+            sampled_indices = sampled_indices.view(-1,logits.shape[1])
+        pred_actions = self.skill_vae_1.decode_actions(sampled_indices)
         if self.return_offset:
             offset = offset.view(-1, self.vae_1_block_size, self.act_dim)
-            with torch.no_grad():
-                probs = torch.softmax(logits, dim=-1)
-                sampled_indices = torch.multinomial(probs.view(-1,logits.shape[-1]),1)
-                sampled_indices = sampled_indices.view(-1,logits.shape[1])
-            pred_actions = self.skill_vae_1.decode_actions(sampled_indices)
-            pred_actions_with_offset = pred_actions + offset
-            offset_loss = self.loss(pred_actions_with_offset, data["actions"])
-            total_loss = prior_loss + self.offset_loss_scale*offset_loss
-            return total_loss, {'offset_loss': offset_loss}
-        else:
-            return prior_loss, {}
+            pred_actions = pred_actions + offset
+        offset_loss = self.loss(pred_actions, data["actions"])
+        total_loss = prior_loss + self.offset_loss_scale*offset_loss
+        return total_loss, {'offset_loss': offset_loss}
 
     def compute_loss(self, data):
         data = self.preprocess_input(data, train_mode=True)
