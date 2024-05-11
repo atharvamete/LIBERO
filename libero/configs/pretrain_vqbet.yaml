@@ -23,7 +23,7 @@ train:
 policy:
   skill_block_size: 32
 
-exp_name: "vqbet_a32_l4h1024_c32_n2"
+exp_name: "vqbet_a32_l2h256_c32_n2"
 seed: 10000
 use_wandb: true
 wandb_project: "diff-skill-libero"

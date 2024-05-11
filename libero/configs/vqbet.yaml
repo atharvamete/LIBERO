@@ -11,7 +11,7 @@ defaults:
 
 # change defaults
 data:
-  seq_len: 14
+  seq_len: 41
   obs_seq_len: 10
 eval:
   eval: false
@@ -21,10 +21,10 @@ train:
   num_workers: 4
   n_epochs: 200
 policy:
-  skill_block_size: 5
+  skill_block_size: 32
 
-pretrain_vqvae_path: "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/experiments_clip/LIBERO_10/Multitask_Pretrain/VQVAE_Model/ResnetEncoder/vqbet_a5_l4h1024_c16_n2/run_001/multitask_model_ep300.pth"
-exp_name: "vqbet_a5_l4h1024_c16_n2_n6d120" # n6d384: GPT model num_heads=num_layers=6, d_model=384
+pretrain_vqvae_path: "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/experiments_clip/LIBERO_90/Multitask_Pretrain/VQVAE_Model/ResnetEncoder/vqbet_a32_l4h1024_c32_n2/run_001/multitask_model_ep300.pth"
+exp_name: "vqbet_a32_l4h1024_c32_n2_n6d120" # n6d384: GPT model num_heads=num_layers=6, d_model=384
 seed: 10000
 use_wandb: true
 wandb_project: "diff-skill-libero"
@@ -38,4 +38,4 @@ task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
 pretrain_model_path: ""
-benchmark_name: "LIBERO_10"
+benchmark_name: "LIBERO_90"

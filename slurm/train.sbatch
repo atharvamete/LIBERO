@@ -4,12 +4,12 @@
 #SBATCH -N1 --gpus=V100:1                       # Number of nodes and cores per node required
 #SBATCH --mem-per-gpu=32G                       # Memory per core
 #SBATCH --constraint=V100-32GB                  # GPU type
-#SBATCH -t36:00:00                              # Duration of the job (36 hours)
-#SBATCH -q inferno                              # QOS Name
+#SBATCH -t8:00:00                              # Duration of the job (36 hours)
+#SBATCH -q embers                              # QOS Name
 #SBATCH -oReport-%j.out                         # Combined output and error messages file
 #SBATCH --mail-type=END,FAIL                    # Mail preferences
 #SBATCH --mail-user=amete7@gatech.edu           # E-mail address for notifications
-#SBATCH --output=slurm_out_train/Report-%A.out
+#SBATCH --output=slurm_out_vqbet_train/Report-%A.out
 cd $HOME/p-agarg35-0/diff-skill/LIBERO        # Change to working directory
 
 module load anaconda3/2022.05.0.1               # Load module dependencies
