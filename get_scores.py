@@ -27,5 +27,5 @@ def main(folder_path):
             print()
 
 if __name__ == "__main__":
-    folder_path = "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/slurm_out_no_eval_few"
+    folder_path = "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/slurm_out_noobs_few_evals_codebook"
     main(folder_path)

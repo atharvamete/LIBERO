@@ -1,6 +1,7 @@
 import robomimic.utils.tensor_utils as TensorUtils
 import torch
 import torch.nn as nn
+import numpy as np
 
 from libero.lifelong.models.modules.rgb_modules import *
 from libero.lifelong.models.modules.language_modules import *
@@ -117,6 +118,7 @@ class SkillGPT_Model(BasePolicy):
         self.return_offset = True if policy_cfg.prior.offset_layers > 0 else False
         offset_dim = self.act_dim*self.vae_1_block_size
         self.prior_cfg.offset_dim = offset_dim
+        self.codebook_size = np.array(policy_cfg.skill_vae_1.fsq_level).prod()
         
         self.skill_vae_1 = load_vae(policy_cfg.skill_vae_1, tune_decoder=cfg.tune_decoder, device=self.device).to(self.device)
         print(next(self.skill_vae_1.parameters()).requires_grad, 'skill_vae_1 grad')
@@ -184,6 +186,7 @@ class SkillGPT_Model(BasePolicy):
         targets = indices.clone()
         logits, prior_loss, offset = self.skill_gpt(x, context, targets, return_offset=self.return_offset)
         with torch.no_grad():
+            logits = logits[:,:,:self.codebook_size]
             probs = torch.softmax(logits, dim=-1)
             sampled_indices = torch.multinomial(probs.view(-1,logits.shape[-1]),1)
             sampled_indices = sampled_indices.view(-1,logits.shape[1])
@@ -223,9 +226,12 @@ class SkillGPT_Model(BasePolicy):
         for i in range(self.prior_cfg.block_size):
             if i == self.prior_cfg.block_size-1:
                 logits,offset = self.skill_gpt(x, context, return_offset=self.return_offset)
+                logits = logits[:,:,:self.codebook_size]
                 offset = offset.view(-1, self.vae_1_block_size, self.act_dim) if self.return_offset else None
             else:
                 logits,_ = self.skill_gpt(x, context)
+                print(logits[0,-1,:],'logits')
+                logits = logits[:,:,:self.codebook_size]
             next_indices = top_k_sampling(logits[:,-1,:], self.prior_cfg.beam_size, self.prior_cfg.temperature)
             x = torch.cat([x, next_indices], dim=1)
         return x[:,1:], offset
