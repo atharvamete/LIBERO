@@ -17,15 +17,16 @@ def main(folder_path):
     # Iterate over all files in the folder
     for filename in os.listdir(folder_path):
         if filename.endswith(".out"):
+            print(filename)
             file_path = os.path.join(folder_path, filename)
             lines = extract_lines(file_path)
             print(lines[0])
             rates = re.findall(r'\d+\.\d+', lines[1])
             rates = [float(rate) for rate in rates]
-            sr = sum(rates) / len(rates)
+            sr = sum(rates) / len(rates) if len(rates)!=0 else 0.0
             print(f"Success rate: {sr}")
             print()
 
 if __name__ == "__main__":
-    folder_path = "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/slurm_out_vqbet_few"
+    folder_path = "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/slurm_out_noobs_evals_codebook"
     main(folder_path)

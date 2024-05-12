@@ -35,7 +35,7 @@ class Multitask(Sequential):
             total_params += num_params
         return total_params
 
-    def start_task(self, task):
+    def start_task(self, task, current_epoch):
         """
         What the algorithm does at the beginning of learning each lifelong task.
         """
@@ -58,6 +58,13 @@ class Multitask(Sequential):
                 T_max=self.cfg.train.n_epochs,
                 **self.cfg.train.scheduler.kwargs,
             )
+        if current_epoch>2:
+            optimizer1_state_dict, optimizer2_state_dict = torch_load_optimizer(self.cfg.continue_model_path)
+            self.optimizer['optimizer1'].load_state_dict(optimizer1_state_dict)
+            self.optimizer['optimizer2'].load_state_dict(optimizer2_state_dict)
+            scheduler1_state_dict, scheduler2_state_dict = torch_load_scheduler(self.cfg.continue_model_path)
+            self.scheduler1.load_state_dict(scheduler1_state_dict)
+            self.scheduler2.load_state_dict(scheduler2_state_dict)
     
     def observe(self, data, epoch):
         """
@@ -88,8 +95,8 @@ class Multitask(Sequential):
             loss, info = self.policy.compute_loss(data)
         return loss.item(), info
 
-    def learn_all_tasks(self, datasets, benchmark, result_summary):
-        self.start_task(-1)
+    def learn_all_tasks(self, current_epoch, datasets, benchmark, result_summary):
+        self.start_task(-1, current_epoch)
         concat_dataset = ConcatDataset(datasets)
         # learn on all tasks, only used in multitask learning
         model_checkpoint_name = os.path.join(
@@ -119,7 +126,7 @@ class Multitask(Sequential):
         losses = []
         steps = 0
         # start training
-        for epoch in tqdm(range(1, self.cfg.train.n_epochs + 1)):
+        for epoch in tqdm(range(current_epoch, self.cfg.train.n_epochs + 1)):
 
             t0 = time.time()
             if epoch > 0 or (self.cfg.pretrain):  # update
@@ -144,7 +151,7 @@ class Multitask(Sequential):
             print(
                 f"[info] Epoch: {epoch:3d} | train loss: {training_loss:5.2f} | time: {(t1-t0)/60:4.2f}"
             )
-
+            torch_save_model(self.policy, self.optimizer['optimizer1'], self.optimizer["optimizer2"], self.scheduler1, self.scheduler2, model_checkpoint_name, epoch, cfg=self.cfg)
             if epoch % self.cfg.eval.eval_every == 0:  # evaluate BC loss
                 t0 = time.time()
                 self.policy.eval()
@@ -152,7 +159,7 @@ class Multitask(Sequential):
                 model_checkpoint_name_ep = os.path.join(
                     self.experiment_dir, f"multitask_model_ep{epoch}.pth"
                 )
-                torch_save_model(self.policy, model_checkpoint_name_ep, cfg=self.cfg)
+                torch_save_model(self.policy, self.optimizer['optimizer1'], self.optimizer["optimizer2"], self.scheduler1, self.scheduler2, model_checkpoint_name_ep, cfg=self.cfg)
                 losses.append(training_loss)
 
                 # for multitask learning, we provide an option whether to evaluate
@@ -170,7 +177,7 @@ class Multitask(Sequential):
                 successes.append(success_rate)
 
                 if prev_success_rate < success_rate and (not self.cfg.pretrain):
-                    torch_save_model(self.policy, model_checkpoint_name, cfg=self.cfg)
+                    torch_save_model(self.policy, self.optimizer['optimizer1'], self.optimizer["optimizer2"], self.scheduler1, self.scheduler2, model_checkpoint_name, epoch, cfg=self.cfg)
                     prev_success_rate = success_rate
                     idx_at_best_succ = len(losses) - 1
 

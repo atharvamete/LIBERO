@@ -31,6 +31,7 @@ from libero.lifelong.utils import (
     torch_load_model,
     create_experiment_dir,
     get_task_embs,
+    torch_load_epoch,
 )
 
 
@@ -154,16 +155,16 @@ def main(hydra_cfg):
                     result_summary[f"k{k}_e{e//cfg.eval.eval_every}"] = [
                         [] for _ in range(cfg.eval.n_eval)
                     ]
-
+    current_epoch = 1
     # define lifelong algorithm
     algo = safe_device(get_algo_class(cfg.lifelong.algo)(n_tasks, cfg), cfg.device)
-    if cfg.pretrain_model_path != "":  # load a pretrained model if there is any
+    if cfg.continue_model_path != "":  # load a pretrained model if there is any
         try:
-            algo.policy.load_state_dict(torch_load_model(cfg.pretrain_model_path)[0])
-        except:
-            print(
-                f"[error] cannot load pretrained model from {cfg.pretrain_model_path}"
-            )
+            algo.policy.load_state_dict(torch_load_model(cfg.continue_model_path)[0])
+            current_epoch = torch_load_epoch(cfg.continue_model_path)
+        except Exception as e:
+            print(f"[error] failed to load pretrained model from {cfg.continue_model_path}")
+            print(f"[error] {e}")
             sys.exit(0)
 
     print(f"[info] start lifelong learning with algo {cfg.lifelong.algo}")
@@ -177,7 +178,7 @@ def main(hydra_cfg):
     if cfg.lifelong.algo == "Multitask":
 
         algo.train()
-        s_fwd, l_fwd = algo.learn_all_tasks(datasets, benchmark, result_summary)
+        s_fwd, l_fwd = algo.learn_all_tasks(current_epoch, datasets, benchmark, result_summary)
         result_summary["L_fwd"][-1] = l_fwd
         result_summary["S_fwd"][-1] = s_fwd
 
