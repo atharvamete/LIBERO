@@ -20,15 +20,14 @@ class SkillVAE(nn.Module):
         self.action_head = nn.Linear(cfg.decoder_dim, cfg.action_dim)
         self.conv_block = ResidualTemporalBlock(
             cfg.encoder_dim, cfg.encoder_dim, kernel_size=cfg.kernel_sizes, stride=cfg.strides, causal=cfg.use_causal_encoder)
-        # self.deconv_block = ResidualTemporalDeConvBlock(
-        #     cfg.decoder_dim, cfg.decoder_dim, kernel_size=cfg.kernel_sizes, stride=cfg.strides, causal=cfg.use_causal_decoder)
+        self.deconv_block = ResidualTemporalDeConvBlock(
+            cfg.decoder_dim, cfg.decoder_dim, kernel_size=cfg.kernel_sizes, stride=cfg.strides, causal=cfg.use_causal_decoder)
 
         encoder_layer = nn.TransformerEncoderLayer(d_model=cfg.encoder_dim, nhead=cfg.encoder_heads, dim_feedforward=4*cfg.encoder_dim, dropout=cfg.attn_pdrop, activation='gelu', batch_first=True, norm_first=True)
         self.encoder =  nn.TransformerEncoder(encoder_layer, num_layers=cfg.encoder_layers)
-        decoder_layer = nn.TransformerDecoderLayer(d_model=cfg.decoder_dim, nhead=cfg.decoder_heads, dim_feedforward=4*cfg.decoder_dim, dropout=cfg.attn_pdrop, activation='gelu', batch_first=True, norm_first=True)
-        self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=cfg.decoder_layers)
+        decoder_layer = nn.TransformerEncoderLayer(d_model=cfg.decoder_dim, nhead=cfg.decoder_heads, dim_feedforward=4*cfg.decoder_dim, dropout=cfg.attn_pdrop, activation='gelu', batch_first=True, norm_first=True)
+        self.decoder = nn.TransformerEncoder(decoder_layer, num_layers=cfg.decoder_layers)
         self.add_positional_emb = Summer(PositionalEncoding1D(cfg.encoder_dim))
-        self.fixed_positional_emb = PositionalEncoding1D(cfg.decoder_dim)
     
     def encode(self, act):
         x = self.action_proj(act)
@@ -53,12 +52,13 @@ class SkillVAE(nn.Module):
         return codes, indices, pp, pp_sample, commitment_loss
 
     def decode(self, codes):
-        x = self.fixed_positional_emb(torch.zeros((codes.shape[0], self.cfg.skill_block_size, self.cfg.decoder_dim), dtype=codes.dtype, device=codes.device))
+        x = self.add_positional_emb(codes)
         if self.cfg.use_causal_decoder:
             mask = nn.Transformer.generate_square_subsequent_mask(x.size(1)).to(x.device)
-            x = self.decoder(x, codes, tgt_mask=mask, tgt_is_causal=True)
+            x = self.decoder(x, mask=mask, is_causal=True)
         else:
             x = self.decoder(x, codes)
+        x = self.deconv_block(x)
         x = self.action_head(x)
         return x
 
