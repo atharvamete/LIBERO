@@ -63,7 +63,7 @@ class Multitask_Pretrain(Sequential):
             sampler=RandomSampler(concat_dataset),
             persistent_workers=True,
             pin_memory=True,
-            prefetch_factor=4,
+            prefetch_factor=2,
             multiprocessing_context="fork",
         )
 

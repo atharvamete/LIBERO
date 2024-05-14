@@ -151,7 +151,7 @@ class Multitask(Sequential):
             print(
                 f"[info] Epoch: {epoch:3d} | train loss: {training_loss:5.2f} | time: {(t1-t0)/60:4.2f}"
             )
-            torch_save_model(self.policy, self.optimizer['optimizer1'], self.optimizer["optimizer2"], self.scheduler1, self.scheduler2, model_checkpoint_name, epoch, cfg=self.cfg)
+            #torch_save_model(self.policy, self.optimizer['optimizer1'], self.optimizer["optimizer2"], self.scheduler1, self.scheduler2, model_checkpoint_name, epoch, cfg=self.cfg)
             if epoch % self.cfg.eval.eval_every == 0:  # evaluate BC loss
                 t0 = time.time()
                 self.policy.eval()
@@ -159,7 +159,7 @@ class Multitask(Sequential):
                 model_checkpoint_name_ep = os.path.join(
                     self.experiment_dir, f"multitask_model_ep{epoch}.pth"
                 )
-                torch_save_model(self.policy, self.optimizer['optimizer1'], self.optimizer["optimizer2"], self.scheduler1, self.scheduler2, model_checkpoint_name_ep, cfg=self.cfg)
+                torch_save_model(self.policy, self.optimizer['optimizer1'], self.optimizer["optimizer2"], self.scheduler1, self.scheduler2, model_checkpoint_name_ep, epoch, cfg=self.cfg)
                 losses.append(training_loss)
 
                 # for multitask learning, we provide an option whether to evaluate

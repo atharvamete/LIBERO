@@ -15,7 +15,7 @@ data:
   obs_seq_len: 10
 eval:
   eval: false
-  eval_every: 20
+  eval_every: 2
 train:
   batch_size: 128
   num_workers: 4
