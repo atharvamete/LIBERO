@@ -18,15 +18,15 @@ eval:
   eval_every: 20
 train:
   batch_size: 256
-  num_workers: 6
+  num_workers: 4
   n_epochs: 100
 policy:
   skill_block_size: 32
-  fsq_level: [7,5,5,5,5]
+  fsq_level: [8,5,5,5]
   kernel_sizes: [5,3,3]
-  strides: [2,2,1]
+  strides: [1,1,1]
 
-exp_name: "m4no_32_f4096_k3s4_tt" # model_type: m4, seq_len: 32, fsq_levels: 4, num_kernels: 3, stride_factor: 4, encoder-decoder_causality: true-true
+exp_name: "m4no_32_f4_k3s1_tt" # model_type: m4, seq_len: 32, fsq_levels: 4, num_kernels: 3, stride_factor: 4, encoder-decoder_causality: true-true
 seed: 10000
 use_wandb: true
 wandb_project: "diff-skill-libero"
