@@ -110,7 +110,7 @@ class Multitask_Pretrain(Sequential):
                 model_checkpoint_name_ep = os.path.join(
                     self.experiment_dir, f"multitask_model_ep{epoch}.pth"
                 )
-                torch_save_model(self.policy, model_checkpoint_name_ep, cfg=self.cfg)
+                torch_save_model_pretrain(self.policy, model_checkpoint_name_ep, cfg=self.cfg)
                 losses.append(training_loss)
 
                 # for multitask learning, we provide an option whether to evaluate
@@ -128,7 +128,7 @@ class Multitask_Pretrain(Sequential):
                 successes.append(success_rate)
 
                 if prev_success_rate < success_rate and (not self.cfg.pretrain):
-                    torch_save_model(self.policy, model_checkpoint_name, cfg=self.cfg)
+                    torch_save_model_pretrain(self.policy, model_checkpoint_name, cfg=self.cfg)
                     prev_success_rate = success_rate
                     idx_at_best_succ = len(losses) - 1
 

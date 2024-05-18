@@ -43,6 +43,15 @@ class NpEncoder(json.JSONEncoder):
         else:
             return super(NpEncoder, self).default(obj)
 
+def torch_save_model_pretrain(model, model_path, cfg=None, previous_masks=None):
+    torch.save(
+        {
+            "state_dict": model.state_dict(),
+            "cfg": cfg,
+            "previous_masks": previous_masks,
+        },
+        model_path,
+    )
 
 def torch_save_model(model, optimizer1, scheduler1, optimizer2, scheduler2, model_path, epoch, cfg=None, previous_masks=None):
     torch.save(
@@ -65,11 +74,11 @@ def torch_load_epoch(model_path, map_location=None):
 
 def torch_load_optimizer(model_path, map_location=None):
     model_dict = torch.load(model_path, map_location=map_location)
-    return model_dict["optimizer1_state_dict"], model_dict["optimizer2_state_dict"]
+    return model_dict["optimizer1_state_dict"], model_dict["scheduler1_state_dict"]
 
 def torch_load_scheduler(model_path, map_location=None):
     model_dict = torch.load(model_path, map_location=map_location)
-    return model_dict["scheduler1_state_dict"], model_dict["scheduler2_state_dict"]
+    return model_dict["optimizer2_state_dict"], model_dict["scheduler2_state_dict"]
 
 def torch_load_model(model_path, map_location=None):
     model_dict = torch.load(model_path, map_location=map_location)

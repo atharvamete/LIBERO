@@ -267,7 +267,6 @@ class BehaviorTransformer(nn.Module):
         decoded_action = (
             self._vqvae_model.get_action_from_latent(return_decoder_input)
             .clone()
-            .detach()
         )  # NT, A
         sampled_offsets = einops.rearrange(
             sampled_offsets, "NT (W A) -> NT W A", W=self._vqvae_model.input_dim_h

@@ -161,7 +161,7 @@ def main(hydra_cfg):
     if cfg.continue_model_path != "":  # load a pretrained model if there is any
         try:
             algo.policy.load_state_dict(torch_load_model(cfg.continue_model_path)[0])
-            current_epoch = torch_load_epoch(cfg.continue_model_path)
+            current_epoch = torch_load_epoch(cfg.continue_model_path) + 1
         except Exception as e:
             print(f"[error] failed to load pretrained model from {cfg.continue_model_path}")
             print(f"[error] {e}")
@@ -175,6 +175,7 @@ def main(hydra_cfg):
     with open(os.path.join(cfg.experiment_dir, "config.json"), "w") as f:
         json.dump(cfg, f, cls=NpEncoder, indent=4)
 
+    print(f"[info] current epoch: {current_epoch}")
     if cfg.lifelong.algo == "Multitask":
 
         algo.train()

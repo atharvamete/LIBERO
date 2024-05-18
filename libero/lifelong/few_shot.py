@@ -176,11 +176,12 @@ def main(hydra_cfg):
     # save the experiment config file, so we can resume or replay later
     with open(os.path.join(cfg.experiment_dir, "config.json"), "w") as f:
         json.dump(cfg, f, cls=NpEncoder, indent=4)
+    current_epoch = 1
 
     if cfg.lifelong.algo == "Multitask":
 
         algo.train()
-        s_fwd, l_fwd = algo.learn_all_tasks(datasets, benchmark, result_summary)
+        s_fwd, l_fwd = algo.learn_all_tasks(current_epoch, datasets, benchmark, result_summary)
         result_summary["L_fwd"][-1] = l_fwd
         result_summary["S_fwd"][-1] = s_fwd
 

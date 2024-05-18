@@ -60,9 +60,11 @@ class Multitask(Sequential):
             )
         if current_epoch>2:
             optimizer1_state_dict, optimizer2_state_dict = torch_load_optimizer(self.cfg.continue_model_path)
+            print(optimizer1_state_dict.keys(), optimizer2_state_dict.keys())
             self.optimizer['optimizer1'].load_state_dict(optimizer1_state_dict)
             self.optimizer['optimizer2'].load_state_dict(optimizer2_state_dict)
             scheduler1_state_dict, scheduler2_state_dict = torch_load_scheduler(self.cfg.continue_model_path)
+            print(scheduler1_state_dict.keys(), scheduler2_state_dict.keys())
             self.scheduler1.load_state_dict(scheduler1_state_dict)
             self.scheduler2.load_state_dict(scheduler2_state_dict)
     
@@ -151,7 +153,7 @@ class Multitask(Sequential):
             print(
                 f"[info] Epoch: {epoch:3d} | train loss: {training_loss:5.2f} | time: {(t1-t0)/60:4.2f}"
             )
-            #torch_save_model(self.policy, self.optimizer['optimizer1'], self.optimizer["optimizer2"], self.scheduler1, self.scheduler2, model_checkpoint_name, epoch, cfg=self.cfg)
+            torch_save_model(self.policy, self.optimizer['optimizer1'], self.optimizer["optimizer2"], self.scheduler1, self.scheduler2, model_checkpoint_name, epoch, cfg=self.cfg)
             if epoch % self.cfg.eval.eval_every == 0:  # evaluate BC loss
                 t0 = time.time()
                 self.policy.eval()
