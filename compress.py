@@ -7,18 +7,11 @@ def compress_files(file_paths, zip_file_name):
 
 # Example usage
 file_paths = [
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f16_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f16_k3s4_tt_n6d384_off0/run_001/multitask_model_ep60.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f16_k3s4_tt_n6d384_off0/run_001/multitask_model_ep100.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f64_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f64_k3s4_tt_n6d384_off0/run_001/multitask_model_ep60.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f64_k3s4_tt_n6d384_off0/run_001/multitask_model_ep100.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f256_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f256_k3s4_tt_n6d384_off0/run_001/multitask_model_ep60.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f256_k3s4_tt_n6d384_off0/run_001/multitask_model_ep100.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f512_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f512_k3s4_tt_n6d384_off0/run_001/multitask_model_ep60.pth',
-    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f512_k3s4_tt_n6d384_off0/run_001/multitask_model_ep100.pth',
+    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_8_f4_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth',
+    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_16_f4_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth',
+    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f2048_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth',
+    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f4096_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth',
+    '/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_64_f4_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth',
     ]
-zip_file_name = 'codebook_size.zip'
+zip_file_name = 'seq_z_ablations.zip'
 compress_files(file_paths, zip_file_name)
