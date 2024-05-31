@@ -22,10 +22,10 @@ def main(folder_path):
             print(lines[0])
             rates = re.findall(r'\d+\.\d+', lines[1])
             rates = [float(rate) for rate in rates]
-            sr = sum(rates) / len(rates)
+            sr = sum(rates) / len(rates) if len(rates) > 0 else "No success rate found"
             print(f"Success rate: {sr}")
             print()
 
 if __name__ == "__main__":
-    folder_path = "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/slurm_out_noobs_few_evals_codebook"
+    folder_path = "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/slurm_out_latest_final_paper_eval"
     main(folder_path)

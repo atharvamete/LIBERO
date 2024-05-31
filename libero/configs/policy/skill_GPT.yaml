@@ -32,7 +32,7 @@ skill_vae_1:
     encoder_heads: 4
     encoder_layers: 2
     decoder_heads: 4
-    decoder_layers: 2
+    decoder_layers: 4
 
     attn_pdrop: 0.1
     use_causal_encoder: true
@@ -46,7 +46,7 @@ skill_vae_1:
     kernel_sizes: [5,3,3] # conv module will have 3 layers with kernel sizes 5,3,3
     strides: [2,2,1] # conv module will have 3 layers with strides 2,2,1
 
-offset_loss_scale: 0.0
+offset_loss_scale: 10.0
 lang_emb_dim: 512 # clip embedding size
 mpc_horizon: 16 # mpc horizon for execution
 

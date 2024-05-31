@@ -16,7 +16,7 @@ data:
   few_shot_demos: [1, 5, 10, 20, 45] # demo numbers for few-shot learning, use null for using all demos
 eval:
   eval: false
-  eval_every: 10
+  eval_every: 20
 lifelong:
   eval_in_train: false
 train:

@@ -2,13 +2,13 @@
 #SBATCH -JSlurmPythonExample                    # Job name
 #SBATCH --account=gts-agarg35                   # charge account
 #SBATCH -N1 --gres=gpu:A100:1               # Number of nodes and cores per node required
-#SBATCH --mem-per-gpu=40G                       # Memory per core
+#SBATCH --mem-per-gpu=80G                       # Memory per core
 #SBATCH -t8:00:00                               # Duration of the job (8 hours)
 #SBATCH -q embers                               # QOS Name
 #SBATCH -oReport-%j.out                         # Combined output and error messages file
 #SBATCH --mail-type=END,FAIL                    # Mail preferences
 #SBATCH --mail-user=amete7@gatech.edu           # E-mail address for notifications
-#SBATCH --output=slurm_out_op/Report-%A.out
+#SBATCH --output=slurm_out_abl_train_a100/Report-%A.out
 cd $HOME/p-agarg35-0/diff-skill/LIBERO        # Change to working directory
 
 module load anaconda3/2022.05.0.1               # Load module dependencies

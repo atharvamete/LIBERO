@@ -18,17 +18,17 @@ data:
   obs_seq_len: 1
 eval:
   eval: true
-  n_eval: 40
-  num_procs: 4
+  n_eval: 5
+  num_procs: 5
   batch_size: 128
   num_workers: 4
 
 tune_decoder: false
 
 pretrain_skillVAE_path: null
-pretrain_model_path: "/satassdscratch/amete7/LIBERO/experiments_finetune_clip/LIBERO_10/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f4_k3s4_tt_n6d384_nooff10_5shot_dec/run_001/multitask_model_ep100.pth"
-exp_name: "eval40_m4no_32_f4_k3s4_tt_n6d384_nooff10_5shot_dec"
-seed: 1000
+pretrain_model_path: "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f4_k3s4_tt_n6d384_off0/run_001/multitask_model_ep20.pth"
+exp_name: "tsne"
+seed: 1
 use_wandb: false
 wandb_project: "diff-skill-libero"
 folder: null # use default path

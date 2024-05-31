@@ -12,7 +12,10 @@ from libero.lifelong.models.modules.skill_vae_modules import *
 from libero.lifelong.models.modules.skill_vae_modules import *
 from libero.lifelong.models.modules.skill_utils import Transformer_Prior, MLP_Proj, beam_search, top_k_sampling
 from libero.lifelong.utils import torch_load_model
-from collections import deque
+from collections import defaultdict, deque
+
+def generate_unique_name(task_emb):
+    return f"task_emb_{hash(task_emb.cpu().numpy().tobytes())}"
 
 class ExtraModalityTokens(nn.Module):
     def __init__(
@@ -119,6 +122,7 @@ class SkillGPT_Model(BasePolicy):
         offset_dim = self.act_dim*self.vae_1_block_size
         self.prior_cfg.offset_dim = offset_dim
         self.codebook_size = np.array(policy_cfg.skill_vae_1.fsq_level).prod()
+        self.tsne_dict = defaultdict(lambda: {'indices': [], 'codes': []})
         
         self.skill_vae_1 = load_vae(policy_cfg.skill_vae_1, tune_decoder=cfg.tune_decoder, device=self.device).to(self.device)
         print(next(self.skill_vae_1.parameters()).requires_grad, 'skill_vae_1 grad')
