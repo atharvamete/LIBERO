@@ -16,17 +16,17 @@ data:
   few_shot_demos: [1, 5, 10, 20, 45] # demo numbers for few-shot learning, use null for using all demos
 eval:
   eval: false
-  eval_every: 20
+  eval_every: 25
 lifelong:
   eval_in_train: false
 train:
   batch_size: 256
   num_workers: 6
-  n_epochs: 100
+  n_epochs: 200
 
 tune_decoder: true
 
-exp_name: "m4no_32_f4_k3s4_tt_n6d384_nooff10_5shot_dec" # n6d384: GPT model num_heads=num_layers=6, d_model=384, 5-shot, decoder not frozen
+exp_name: "m4no_32_f4_k3s4_tt_n6d384_5shot" # n6d384: GPT model num_heads=num_layers=6, d_model=384, 5-shot, decoder not frozen
 seed: 10000
 use_wandb: false
 wandb_project: "diff-skill-libero"
@@ -39,5 +39,5 @@ device: "cuda"
 task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
-pretrain_model_path: "/satassdscratch/amete7/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f4_k3s4_tt_n6d384_off0/run_001/multitask_model_ep100.pth"
+pretrain_model_path: ""
 benchmark_name: "LIBERO_10"

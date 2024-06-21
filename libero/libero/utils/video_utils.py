@@ -41,7 +41,7 @@ class VideoWriter:
                 blank_image = np.ones_like(original_image) * 128
                 blank_image[:, :, 0] = 0
                 blank_image[:, :, -1] = 0
-                transparency = 0.7
+                transparency = 0.05
                 original_image = (
                     original_image * (1 - transparency) + blank_image * transparency
                 )

@@ -67,13 +67,27 @@ def evaluate_one_task_success(
         eval_loop_num = (cfg.eval.n_eval + env_num - 1) // env_num
 
         # initiate evaluation envs
-        env_args = {
-            "bddl_file_name": os.path.join(
-                cfg.bddl_folder, task.problem_folder, task.bddl_file
-            ),
-            "camera_heights": cfg.data.img_h,
-            "camera_widths": cfg.data.img_w,
-        }
+        if cfg.save_video:
+            env_args = {
+                "bddl_file_name": os.path.join(
+                    cfg.bddl_folder, task.problem_folder, task.bddl_file
+                ),
+                'camera_names':[
+                    "agentview",
+                    "robot0_eye_in_hand",
+                    "frontview",
+                ],
+                "camera_heights": [cfg.data.img_h, cfg.data.img_h, cfg.render_h],
+                "camera_widths": [cfg.data.img_w, cfg.data.img_w, cfg.render_w],
+            }
+        else:
+            env_args = {
+                "bddl_file_name": os.path.join(
+                    cfg.bddl_folder, task.problem_folder, task.bddl_file
+                ),
+                "camera_heights": cfg.data.img_h,
+                "camera_widths": cfg.data.img_w,
+            }
 
         env_num = min(cfg.eval.num_procs, cfg.eval.n_eval) if cfg.eval.use_mp else 1
         eval_loop_num = (cfg.eval.n_eval + env_num - 1) // env_num
@@ -126,14 +140,18 @@ def evaluate_one_task_success(
                 for k in range(env_num):
                     if i * env_num + k < cfg.eval.n_eval and sim_states is not None:
                         sim_states[i * env_num + k].append(sim_state[k])
-
+            
+            if cfg.save_video:
+                video_path = cfg.experiment_dir + f"/task_{task_id}_{i}"
+                video = VideoWriter(video_path, save_video=cfg.save_video, fps=20, single_video=False)
             while steps < cfg.eval.max_steps:
                 steps += 1
-
                 data = raw_obs_to_tensor_obs(obs, task_emb, cfg)
                 actions = algo.policy.get_action(data)
 
                 obs, reward, done, info = env.step(actions)
+                if cfg.save_video:
+                    video.append_vector_obs(obs, done, camera_name="frontview_image")
 
                 # record the sim states for replay purpose
                 if task_str != "":
@@ -148,6 +166,9 @@ def evaluate_one_task_success(
 
                 if all(dones):
                     break
+
+            if cfg.save_video:
+                video.save()
 
             # a new form of success record
             for k in range(env_num):

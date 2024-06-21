@@ -32,6 +32,7 @@ class Multitask(Sequential):
         total_params = 0
         for group in optimizer.param_groups:
             num_params = sum(p.numel() for p in group['params'])
+            print(num_params, 'parameters with group')
             total_params += num_params
         return total_params
 
