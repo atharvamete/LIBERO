@@ -18,15 +18,15 @@ data:
   obs_seq_len: 1
 eval:
   eval: true
-  n_eval: 5
+  n_eval: 20
   num_procs: 5
   batch_size: 128
   num_workers: 4
 
 tune_decoder: false
-save_video: true
-render_h: 512
-render_w: 512
+save_video: false
+render_h: 128
+render_w: 128
 
 pretrain_skillVAE_path: null
 pretrain_model_path: "/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/experiments_clip/LIBERO_90/Multitask/SkillGPT_Model/ResnetEncoder/m4no_32_f4_k3s4_tt_n6d384_off0/run_001/multitask_model_ep100.pth"
@@ -42,4 +42,4 @@ device: "cuda"
 task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
-benchmark_name: "LIBERO_90"
+benchmark_name: "LIBERO_10"
