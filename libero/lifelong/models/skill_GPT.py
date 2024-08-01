@@ -13,6 +13,7 @@ from libero.lifelong.models.modules.skill_vae_modules import *
 from libero.lifelong.models.modules.skill_utils import Transformer_Prior, MLP_Proj, beam_search, top_k_sampling
 from libero.lifelong.utils import torch_load_model
 from collections import defaultdict, deque
+import time
 
 def generate_unique_name(task_emb):
     return f"task_emb_{hash(task_emb.cpu().numpy().tobytes())}"
@@ -217,12 +218,15 @@ class SkillGPT_Model(BasePolicy):
         return action
     
     def sample_actions(self, data):
+        # start_time = time.time()
         data = self.preprocess_input(data, train_mode=False)
         context = self.obs_encode(data)
         sampled_indices, offset = self.get_indices_top_k(context)
         pred_actions = self.skill_vae_1.decode_actions(sampled_indices)
+        # latency = time.time() - start_time
         pred_actions_with_offset = pred_actions + offset if offset is not None else pred_actions
         pred_actions_with_offset = pred_actions_with_offset.permute(1,0,2)
+        # print(latency)
         return pred_actions_with_offset.detach().cpu().numpy()
 
     def get_indices_top_k(self, context):

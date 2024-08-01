@@ -198,7 +198,7 @@ def evaluate_success(cfg, algo, benchmark, task_ids, result_summary=None):
         )
         print(f"[info] task_{i}: {benchmark.get_task(i).language} | success rate: {success_rate}")
         successes.append(success_rate)
-    np.savez("/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/tsne_data/tsne_dict_empty.npz", **algo.policy.tsne_dict)
+    #np.savez("/storage/home/hcoda1/0/amete7/p-agarg35-0/diff-skill/LIBERO/tsne_data/tsne_dict_empty.npz", **algo.policy.tsne_dict)
     return np.array(successes)
 
 

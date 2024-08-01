@@ -72,6 +72,10 @@ class Sequential(nn.Module, metaclass=AlgoMeta):
 
         self.policy = get_policy_class(cfg.policy.policy_type)(cfg, cfg.shape_meta)
         print('[info] Trainable parameters:', sum(p.numel() for p in self.policy.parameters() if p.requires_grad))
+        print('[info] Total parameters:', sum(p.numel() for p in self.policy.parameters()))
+        # print('[info] Total vae parameters:', sum(p.numel() for p in self.policy.skill_vae_1.parameters()))
+        # print('[info] Total decoder parameters:', sum(p.numel() for p in self.policy.skill_vae_1.decoder.parameters()))
+        # print('[info] Total head parameters:', sum(p.numel() for p in self.policy.skill_vae_1.action_head.parameters()))
         self.current_task = -1
 
     def end_task(self, dataset, task_id, benchmark, env=None):
