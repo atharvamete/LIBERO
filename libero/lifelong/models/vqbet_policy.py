@@ -12,6 +12,7 @@ from libero.lifelong.models.modules.vq_behavior_transformer import *
 from libero.lifelong.utils import torch_load_model
 from collections import deque
 import einops
+import time
 
 class MLP_Proj(nn.Module):
     """
@@ -121,6 +122,7 @@ class VQBet_Model(BasePolicy):
         self.mpc_horizon = policy_cfg.mpc_horizon
         self.obs_window_size = policy_cfg.obs_window_size
         self.action_queue = deque(maxlen=self.mpc_horizon)
+        self.obs_queue = []
         
         vq_vae = VQVAE_Model(cfg, shape_meta)
         if cfg.pretrain_vqvae_path is not None:
@@ -219,7 +221,11 @@ class VQBet_Model(BasePolicy):
     
     def sample_actions(self, data):
         data = self.preprocess_input(data, train_mode=False)
-        obs = self.obs_proj(self.obs_encode(data))[:,:self.obs_window_size,:]
+        obs = self.obs_proj(self.obs_encode(data))
+        # self.obs_queue.append(obs)
+        # if len(self.obs_queue) > self.obs_window_size:
+        #     self.obs_queue.pop(0)
+        # obs = torch.cat(self.obs_queue, 1)
         goal = self.lang_proj(data["task_emb"]).unsqueeze(1)
         predicted_act, _, _ = self.Bet(obs, goal, None)
         predicted_act = einops.rearrange(predicted_act, "(N T) W A -> N T W A", T=self.obs_window_size)[:, -1, :, :]
@@ -228,6 +234,7 @@ class VQBet_Model(BasePolicy):
 
     def reset(self):
         self.action_queue = deque(maxlen=self.mpc_horizon)
+        self.obs_queue = []
     
     def configure_optimizers(self, lr, betas, weight_decay):
         bet_optimizers = self.Bet.configure_optimizers(weight_decay=weight_decay, learning_rate=lr, betas=betas)

@@ -15,8 +15,8 @@ data:
   obs_seq_len: 10
 eval:
   eval: true
-  n_eval: 20
-  num_procs: 6
+  n_eval: 50
+  num_procs: 5
   batch_size: 128
   num_workers: 6
 policy:

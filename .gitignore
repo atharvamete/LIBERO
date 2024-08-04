@@ -10,6 +10,9 @@ experiments/
 experiments_clip/*
 evaluations_clip/*
 experiments_finetune_clip/*
+experiments_clip_old/*
+evaluations_clip_old/*
+experiments_finetune_clip_old/*
 pace_models/*
 *.zip
 *.out
