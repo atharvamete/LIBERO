@@ -42,4 +42,4 @@ device: "cuda"
 task_embedding_format: "clip"
 task_embedding_one_hot_offset: 1
 pretrain: false
-benchmark_name: "LIBERO_10"
+benchmark_name: "LIBERO_90"

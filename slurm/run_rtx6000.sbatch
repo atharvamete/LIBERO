@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH -JSlurmPythonExample                    # Job name
 #SBATCH --account=gts-agarg35                   # charge account
-#SBATCH -N1 --gres=gpu:RTX_6000:1               # Number of nodes and cores per node required
-#SBATCH --mem-per-gpu=24G                       # Memory per core
+#SBATCH -N1 --gres=gpu:V100:1               # Number of nodes and cores per node required
+#SBATCH --mem-per-gpu=32G                       # Memory per core
 #SBATCH -t8:00:00                               # Duration of the job (8 hours)
-#SBATCH -q inferno                               # QOS Name
+#SBATCH -q embers                               # QOS Name
 #SBATCH -oReport-%j.out                         # Combined output and error messages file
 #SBATCH --mail-type=END,FAIL                    # Mail preferences
 #SBATCH --mail-user=amete7@gatech.edu           # E-mail address for notifications
